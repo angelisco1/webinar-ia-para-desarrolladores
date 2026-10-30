@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+.angular/
+dist/
+*.log
+.env
+.env.*
+
+# SQLite: se regenera con `npm run seed`
+*.db
+*.db-journal

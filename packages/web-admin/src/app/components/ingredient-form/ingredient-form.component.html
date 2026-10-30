@@ -1,0 +1,40 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div class="header-back">
+      <a [routerLink]="'/restaurants/' + restaurantId + '/ingredients'" class="back-link">
+        <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+      </a>
+      <h1>{{ isEditing ? 'Editar ingrediente' : 'Nuevo ingrediente' }}</h1>
+    </div>
+  </div>
+
+  <div class="alert-error" *ngIf="error">{{ error }}</div>
+
+  <form (ngSubmit)="save()" class="card form-card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="name">Nombre del ingrediente</label>
+        <input id="name" type="text" class="form-control" [(ngModel)]="ingredient.name" name="name" placeholder="Tomate" />
+      </div>
+
+      <div class="form-group">
+        <label for="unit">Unidad de medida</label>
+        <select id="unit" class="form-control" [(ngModel)]="ingredient.unit" name="unit">
+          <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="currentStock">Stock actual</label>
+        <input id="currentStock" type="number" class="form-control" [(ngModel)]="ingredient.currentStock" name="currentStock" step="0.1" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a [routerLink]="'/restaurants/' + restaurantId + '/ingredients'" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>

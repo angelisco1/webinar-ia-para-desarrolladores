@@ -1,0 +1,49 @@
+<div class="fade-in">
+  <div class="page-header">
+    <h1>Ingredientes</h1>
+    <a [routerLink]="'/restaurants/' + restaurantId + '/ingredients/new'" class="btn btn-primary">
+      <lucide-icon name="plus" [size]="16"></lucide-icon>
+      Nuevo ingrediente
+    </a>
+  </div>
+
+  <div class="spinner" *ngIf="loading"></div>
+  <div class="alert-error" *ngIf="!loading && error">{{ error }}</div>
+
+  <div class="empty-state card" *ngIf="!loading && !error && ingredients.length == 0">
+    <lucide-icon name="package" [size]="40"></lucide-icon>
+    <p>No hay ingredientes para este restaurante</p>
+  </div>
+
+  <div class="card table-container" *ngIf="!loading && !error && ingredients.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Stock actual</th>
+          <th>Unidad</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of ingredients">
+          <td class="ingredient-name">{{ i.name }}</td>
+          <td>
+            <span [ngClass]="i.currentStock <= 0 ? 'stock-zero' : 'stock-ok'">{{ i.currentStock }}</span>
+          </td>
+          <td><span class="badge badge-muted">{{ i.unit }}</span></td>
+          <td>
+            <div class="actions">
+              <a [routerLink]="'/restaurants/' + restaurantId + '/ingredients/' + i.id + '/edit'" class="btn btn-secondary btn-sm">
+                <lucide-icon name="edit" [size]="14"></lucide-icon>
+              </a>
+              <button class="btn btn-danger btn-sm" (click)="deleteIngredient(i.id)">
+                <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

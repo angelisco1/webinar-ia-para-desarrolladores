@@ -1,0 +1,58 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div class="header-back">
+      <a routerLink="/restaurants" class="back-link">
+        <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+      </a>
+      <h1>{{ isEditing ? 'Editar restaurante' : 'Nuevo restaurante' }}</h1>
+    </div>
+  </div>
+
+  <div class="alert-error" *ngIf="error">{{ error }}</div>
+
+  <form (ngSubmit)="save()" class="card form-card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="name">Nombre del restaurante</label>
+        <input id="name" type="text" class="form-control" [(ngModel)]="restaurant.name" name="name" placeholder="La Trattoria" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="text" class="form-control" [(ngModel)]="restaurant.email" name="email" placeholder="info@restaurante.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="address">Dirección</label>
+        <input id="address" type="text" class="form-control" [(ngModel)]="restaurant.address" name="address" placeholder="Calle Mayor 10, Madrid" />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Teléfono</label>
+        <input id="phone" type="text" class="form-control" [(ngModel)]="restaurant.phone" name="phone" placeholder="+34 612 345 678" />
+      </div>
+
+      <div class="form-group">
+        <label for="ownerFirstName">Nombre del propietario</label>
+        <input id="ownerFirstName" type="text" class="form-control" [(ngModel)]="restaurant.ownerFirstName" name="ownerFirstName" placeholder="Carlos" />
+      </div>
+
+      <div class="form-group">
+        <label for="ownerLastName">Apellido del propietario</label>
+        <input id="ownerLastName" type="text" class="form-control" [(ngModel)]="restaurant.ownerLastName" name="ownerLastName" placeholder="García" />
+      </div>
+
+      <div class="form-group form-full">
+        <label for="logoUrl">URL del logo (opcional)</label>
+        <input id="logoUrl" type="text" class="form-control" [(ngModel)]="restaurant.logoUrl" name="logoUrl" placeholder="https://ejemplo.com/logo.png" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/restaurants" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>

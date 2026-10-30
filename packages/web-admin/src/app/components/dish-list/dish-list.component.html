@@ -1,0 +1,56 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div class="title">Platos</div>
+    <div class="btn btn-primary" (click)="goToNew()">
+      <lucide-icon name="plus" [size]="16"></lucide-icon>
+      Nuevo plato
+    </div>
+  </div>
+
+  <div class="toast" *ngIf="message">{{ message }}</div>
+
+  <div class="filters">
+    <div *ngFor="let c of categories" class="filter-chip" [ngClass]="{'selected': filter == c}" (click)="filter = c">
+      {{ c == 'todos' ? 'Todos' : dataService.getCategoryLabel(c) }}
+    </div>
+  </div>
+
+  <div class="spinner" *ngIf="loading"></div>
+  <div class="error-text" *ngIf="!loading && error">{{ error }}</div>
+
+  <div class="empty-state card" *ngIf="!loading && !error && getDishes().length == 0">
+    <img src="/assets/images/logo.png" class="empty-img">
+    <p>No hay platos</p>
+  </div>
+
+  <div class="card grid-table" *ngIf="!loading && !error && getDishes().length > 0">
+    <div class="grid-row grid-header">
+      <div>Nombre</div>
+      <div>Categoría</div>
+      <div>Precio</div>
+      <div>Disponible</div>
+      <div></div>
+    </div>
+    <div class="grid-row" *ngFor="let d of getDishes()" (click)="goToEdit(d.id)">
+      <div class="dish-info">
+        <span class="dish-name">{{ d.name }}</span>
+        <span class="dish-desc" *ngIf="d.description">{{ d.description }}</span>
+      </div>
+      <div><span class="badge badge-muted">{{ dataService.getCategoryLabel(d.category) }}</span></div>
+      <div class="price">{{ dataService.formatPrice(d.price) }}</div>
+      <div>
+        <div class="toggle" [ngClass]="{'on': d.available}" (click)="toggleAvailable(d, $event)">
+          <div class="toggle-dot"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="icon-action" title="Editar" (click)="goToEdit(d.id)">
+          <lucide-icon name="edit" [size]="14"></lucide-icon>
+        </span>
+        <span class="icon-action danger" title="Eliminar" (click)="deleteDish(d.id, $event)">
+          <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

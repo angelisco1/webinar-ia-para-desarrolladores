@@ -1,0 +1,204 @@
+.header-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.back-link {
+  color: var(--text-muted);
+  display: flex;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.form-card {
+  max-width: 700px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.form-full {
+  grid-column: 1 / -1;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ingredients-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.ingredients-section b {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.ingredient-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ingredient-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.chip-remove {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 2px;
+  border-radius: 50%;
+  transition: all var(--transition);
+  display: flex;
+}
+
+.chip-remove:hover {
+  color: var(--red);
+  background: var(--red-glow);
+}
+
+.add-ingredient-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.add-ingredient-row select {
+  flex: 1;
+}
+
+.qty-input {
+  width: 90px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b92a8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+* :focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.form-control::placeholder {
+  color: #3d4256;
+}
+
+.form-control.invalid {
+  border-color: var(--red);
+}
+
+.label {
+  font-size: 12px;
+  color: #3d4256;
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  cursor: pointer;
+}
+
+.chip.selected {
+  color: var(--green-light);
+}
+
+.toggle {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--red);
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle.on {
+  background: var(--green-medium);
+}
+
+.toggle-dot {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: all var(--transition);
+}
+
+.toggle.on .toggle-dot {
+  left: 20px;
+}
+
+.toast-error {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--red);
+  color: #ff9a9a;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.btn.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.form-actions .btn-primary {
+  cursor: pointer;
+}
