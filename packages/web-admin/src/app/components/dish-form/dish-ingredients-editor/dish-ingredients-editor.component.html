@@ -1,0 +1,23 @@
+<div class="ingredients-section">
+  <b>Ingredientes del plato</b>
+
+  <div class="ingredient-chips" *ngIf="selected().length > 0">
+    <div class="ingredient-chip" *ngFor="let ing of selected()">
+      <span>{{ label(ing.ingredientId) }} — {{ ing.quantity }}</span>
+      <span class="chip-remove" (click)="remove(ing.ingredientId)">
+        <lucide-icon name="trash-2" [size]="12"></lucide-icon>
+      </span>
+    </div>
+  </div>
+
+  <div class="add-ingredient-row">
+    <select class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId">
+      <option value="">--</option>
+      <option *ngFor="let i of all()" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
+    </select>
+    <input type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" />
+    <div class="btn btn-secondary btn-sm" (click)="add()">
+      <lucide-icon name="plus" [size]="14"></lucide-icon>
+    </div>
+  </div>
+</div>

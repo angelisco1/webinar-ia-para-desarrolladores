@@ -24,6 +24,7 @@ import { IngredientListComponent } from './components/ingredient-list/ingredient
 import { IngredientFormComponent } from './components/ingredient-form/ingredient-form.component'
 import { EmployeeListComponent } from './components/employee-list/employee-list.component'
 import { EmployeeFormComponent } from './components/employee-form/employee-form.component'
+import { DishIngredientsEditorComponent } from './components/dish-form/dish-ingredients-editor/dish-ingredients-editor.component'
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { EmployeeFormComponent } from './components/employee-form/employee-form.
     IngredientListComponent,
     IngredientFormComponent,
     EmployeeListComponent,
-    EmployeeFormComponent
+    EmployeeFormComponent,
+    DishIngredientsEditorComponent
   ],
   imports: [
     BrowserModule,
