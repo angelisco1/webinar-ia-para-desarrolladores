@@ -370,7 +370,7 @@ paths:
                 restaurantId: rest-1
                 tableId: 0b1f6c2e-7a3d-4c55-9d1e-2f3a4b5c6d7e
         '400':
-          description: Datos inválidos o `tableId` inexistente / de otro restaurante (cuerpo `{ error: <mensaje> }`, sin `message`)
+          description: "Datos inválidos o `tableId` inexistente o de otro restaurante (cuerpo con solo `error`, sin `message`)"
           content:
             application/json:
               schema:
