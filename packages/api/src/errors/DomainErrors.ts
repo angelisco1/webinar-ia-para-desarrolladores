@@ -162,3 +162,21 @@ export class OrderNotFoundError extends AppError {
   }
 }
 
+
+export class InvalidTableNumberError extends AppError {
+  constructor() {
+    super('El número de mesa debe ser un entero mayor o igual que 1')
+  }
+}
+
+export class InvalidTableCapacityError extends AppError {
+  constructor() {
+    super('La capacidad debe ser un entero mayor o igual que 1')
+  }
+}
+
+export class InvalidTableStatusError extends AppError {
+  constructor(message?: string) {
+    super(message ?? 'Estado de mesa inválido')
+  }
+}
