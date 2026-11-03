@@ -16,3 +16,10 @@ export async function getFirstRestaurantId(request: APIRequestContext): Promise<
   const list = Array.isArray(body) ? body : body.data;
   return list[0].id;
 }
+
+export async function getFirstDishId(request: APIRequestContext, restaurantId: string): Promise<string> {
+  const res = await request.get(`${API}/restaurants/${restaurantId}/dishes`, { headers: authHeaders() });
+  const body = await res.json();
+  const list = Array.isArray(body) ? body : body.data;
+  return list[0].id;
+}

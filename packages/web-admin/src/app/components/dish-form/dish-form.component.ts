@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { AfterViewInit, Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { DataService } from '../../data.service'
 
@@ -8,7 +8,7 @@ import { DataService } from '../../data.service'
   templateUrl: './dish-form.component.html',
   styleUrls: ['./dish-form.component.css']
 })
-export class DishFormComponent implements OnInit {
+export class DishFormComponent implements OnInit, AfterViewInit {
   isEditing = false
   dishId = null
   restaurantId = null
@@ -59,11 +59,13 @@ export class DishFormComponent implements OnInit {
         }
       })
     })
+  }
 
-    setTimeout(() => {
-      var el: any = document.getElementById('dish-name')
-      if (el) el.focus()
-    }, 300)
+  ngAfterViewInit() {
+    // el foco inicial solo tiene sentido al crear: al editar no se roba al usuario
+    if (this.route.snapshot.params['id']) return
+    var el: any = document.getElementById('dish-name')
+    if (el) el.focus()
   }
 
   selectCategory(c) {

@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { getFirstRestaurantId } from './helpers/restaurant';
+import { getFirstDishId, getFirstRestaurantId } from './helpers/restaurant';
 
 let restaurantId: string;
 
@@ -170,4 +170,19 @@ test('los errores de validación se identifican por campo y se anuncian', async 
   await name.fill('Plato de prueba');
   await expect(name).not.toHaveAttribute('aria-invalid', 'true');
   await expect(page.getByText('Indica el nombre del plato')).toHaveCount(0);
+});
+
+test.describe('foco inicial', () => {
+  test('al crear, el nombre recibe el foco', async ({ page }) => {
+    await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+    await expect(page.locator('#dish-name')).toBeFocused();
+  });
+
+  test('al editar, el foco no se mueve automáticamente al nombre', async ({ page, request }) => {
+    const dishId = await getFirstDishId(request, restaurantId);
+    await page.goto(`/restaurants/${restaurantId}/dishes/${dishId}/edit`);
+    await expect(page.locator('#dish-name')).toBeVisible();
+    await page.waitForTimeout(600); // el foco forzado actual se aplica a los 300 ms
+    expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
+  });
 });
