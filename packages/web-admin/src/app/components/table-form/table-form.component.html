@@ -1,0 +1,45 @@
+<div class="fade-in">
+  <div class="page-header">
+    <div class="header-back">
+      <a [routerLink]="'/restaurants/' + restaurantId + '/tables'" class="back-link" aria-label="Volver a mesas">
+        <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+      </a>
+      <h1>{{ isEditing ? 'Editar mesa' : 'Nueva mesa' }}</h1>
+    </div>
+  </div>
+
+  <div class="alert-error" *ngIf="error">{{ error }}</div>
+
+  <form (ngSubmit)="save()" class="card form-card">
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="number">Número</label>
+        <input id="number" type="number" min="1" step="1" class="form-control" [(ngModel)]="table.number" name="number" />
+      </div>
+
+      <div class="form-group">
+        <label for="capacity">Capacidad</label>
+        <input id="capacity" type="number" min="1" step="1" class="form-control" [(ngModel)]="table.capacity" name="capacity" />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Descripción</label>
+        <input id="description" type="text" class="form-control" [(ngModel)]="table.description" name="description" placeholder="Terraza" />
+      </div>
+
+      <div class="form-group">
+        <label for="status">Estado</label>
+        <select id="status" class="form-control" [(ngModel)]="table.status" name="status">
+          <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a [routerLink]="'/restaurants/' + restaurantId + '/tables'" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>

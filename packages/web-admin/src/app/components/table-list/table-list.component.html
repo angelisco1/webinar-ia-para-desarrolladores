@@ -1,0 +1,49 @@
+<div class="fade-in">
+  <div class="page-header">
+    <h1>Mesas</h1>
+    <a [routerLink]="'/restaurants/' + restaurantId + '/tables/new'" class="btn btn-primary">
+      <lucide-icon name="plus" [size]="16"></lucide-icon>
+      Nueva mesa
+    </a>
+  </div>
+
+  <div class="spinner" *ngIf="loading"></div>
+  <div class="alert-error" *ngIf="error">{{ error }}</div>
+
+  <div class="empty-state card" *ngIf="!loading && !error && tables.length == 0">
+    <lucide-icon name="armchair" [size]="40"></lucide-icon>
+    <p>Sin mesas en este restaurante</p>
+  </div>
+
+  <div class="card table-container" *ngIf="tables.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Descripción</th>
+          <th>Capacidad</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of tables">
+          <td class="table-number">{{ t.number }}</td>
+          <td>{{ t.description }}</td>
+          <td>{{ t.capacity }}</td>
+          <td><span class="badge" [ngClass]="'status-' + t.status">{{ t.status }}</span></td>
+          <td>
+            <div class="actions">
+              <a [routerLink]="'/restaurants/' + restaurantId + '/tables/' + t.id + '/edit'" class="btn btn-secondary btn-sm" aria-label="Editar mesa">
+                <lucide-icon name="edit" [size]="14"></lucide-icon>
+              </a>
+              <button class="btn btn-danger btn-sm" aria-label="Eliminar mesa" (click)="deleteTable(t.id)">
+                <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

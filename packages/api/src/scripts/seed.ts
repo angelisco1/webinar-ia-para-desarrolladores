@@ -201,6 +201,33 @@ const seed = async () => {
 
         console.log('Sample orders created')
 
+        const tablesByRestaurant: Record<string, { number: number, description: string | null, capacity: number }[]> = {
+            'rest-1': [
+                { number: 1, description: 'Terraza', capacity: 2 },
+                { number: 2, description: 'Terraza', capacity: 4 },
+                { number: 3, description: 'Salón principal', capacity: 4 },
+                { number: 4, description: 'Salón principal', capacity: 6 },
+                { number: 5, description: 'Barra', capacity: 2 },
+            ],
+            'rest-2': [
+                { number: 1, description: null, capacity: 2 },
+                { number: 2, description: null, capacity: 4 },
+                { number: 3, description: 'Ventana', capacity: 4 },
+                { number: 4, description: 'Reservado', capacity: 6 },
+            ],
+        }
+
+        for (const [restaurantId, tables] of Object.entries(tablesByRestaurant)) {
+            for (const table of tables) {
+                await dbConfig.run(`
+                    INSERT OR IGNORE INTO restaurant_tables (id, restaurant_id, number, description, capacity, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, 'libre', ?, ?)
+                `, [`table-${restaurantId}-${table.number}`, restaurantId, table.number, table.description, table.capacity, new Date().toISOString(), new Date().toISOString()])
+            }
+        }
+
+        console.log('Tables created: 5 for rest-1, 4 for rest-2')
+
         console.log('\n=== Seed completado ===')
         console.log('\nEmpleados:')
         console.log('  Admin: admin@resttek.com / admin@resttek.com')
