@@ -1,18 +1,18 @@
 <div class="fade-in">
   <div class="page-header">
     <h1>Empleados</h1>
-    <a [routerLink]="'/restaurants/' + dataService.currentRestaurantId + '/employees/new'" class="btn btn-primary">
+    <a [routerLink]="'/restaurants/' + restaurantId + '/employees/new'" class="btn btn-primary">
       <lucide-icon name="plus" [size]="16"></lucide-icon>
       Nuevo empleado
     </a>
   </div>
 
-  <div class="empty-state card" *ngIf="dataService.employees.length == 0">
+  <div class="empty-state card" *ngIf="employees().length == 0">
     <lucide-icon name="users" [size]="40"></lucide-icon>
     <p>No hay empleados en este restaurante</p>
   </div>
 
-  <div class="card table-container" *ngIf="dataService.employees.length > 0">
+  <div class="card table-container" *ngIf="employees().length > 0">
     <table>
       <thead>
         <tr>
@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let e of dataService.employees">
+        <tr *ngFor="let e of employees()">
           <td class="employee-name">{{ e.firstName + ' ' + e.lastName }}</td>
           <td>{{ e.email }}</td>
           <td><span [class]="getRoleBadgeClass(e.role)">{{ e.role }}</span></td>
