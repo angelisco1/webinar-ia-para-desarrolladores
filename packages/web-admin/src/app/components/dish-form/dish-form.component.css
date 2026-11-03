@@ -119,11 +119,6 @@ select.form-control {
   color: var(--text-primary);
 }
 
-* :focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
 .form-control::placeholder {
   color: var(--text-secondary);
 }
