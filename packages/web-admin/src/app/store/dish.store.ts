@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core'
 import { firstValueFrom } from 'rxjs'
 import { DishApi } from '../api/dish.api'
-import { Dish } from '../models/dish.model'
+import { toDishDto } from '../components/dish-form/dish-form.mapper'
+import { Dish, DishDto } from '../models/dish.model'
 
 @Injectable({ providedIn: 'root' })
 export class DishStore {
@@ -32,5 +33,15 @@ export class DishStore {
   findById(restaurantId: string, id: string): Dish | undefined {
     if (restaurantId !== this.loadedRestaurantId) return undefined
     return this._dishes().find(d => d.id == id)
+  }
+
+  save(restaurantId: string, dto: DishDto, id?: string): Promise<Dish> {
+    return firstValueFrom(id ? this.api.update(restaurantId, id, dto) : this.api.create(restaurantId, dto))
+  }
+
+  // No hay PATCH en la API: se envía el DTO completo con la nueva disponibilidad
+  async setAvailability(restaurantId: string, dish: Dish, available: boolean): Promise<void> {
+    const updated = await firstValueFrom(this.api.update(restaurantId, dish.id, { ...toDishDto(dish), available }))
+    this._dishes.update(list => list.map(d => (d.id == dish.id ? { ...d, ...updated } : d)))
   }
 }

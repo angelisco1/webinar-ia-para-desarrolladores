@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing'
 import { Subject, of, throwError } from 'rxjs'
 import { DishApi } from '../api/dish.api'
 import { Dish } from '../models/dish.model'
+import { toDishDto } from '../components/dish-form/dish-form.mapper'
 import { DishStore } from './dish.store'
 
 const dish = (over: Partial<Dish> = {}): Dish => ({
@@ -49,6 +50,25 @@ describe('DishStore', () => {
       await store.load('r1')
       expect(store.findById('r1', 'd1')).toEqual(dish())
       expect(store.findById('r2', 'd1')).toBeUndefined()
+    })
+  })
+
+  describe('save / setAvailability', () => {
+    it('save crea sin id y actualiza con id', async () => {
+      const dto: any = { name: 'x' }
+      await store.save('r1', dto)
+      expect(api.create).toHaveBeenCalledWith('r1', dto)
+      await store.save('r1', dto, 'd1')
+      expect(api.update).toHaveBeenCalledWith('r1', 'd1', dto)
+    })
+
+    it('setAvailability hace PUT con el DTO completo y actualiza sin mutar', async () => {
+      await store.load('r1')
+      const original = store.dishes()[0]
+      await store.setAvailability('r1', original, false)
+      expect(api.update).toHaveBeenCalledWith('r1', 'd1', { ...toDishDto(original), available: false })
+      expect(store.dishes()[0].available).toBe(false)
+      expect(original.available).toBe(true)
     })
   })
 })
