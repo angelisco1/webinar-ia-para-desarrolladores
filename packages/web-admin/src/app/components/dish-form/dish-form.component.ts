@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { AfterViewInit, Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { DataService } from '../../data.service'
 
@@ -8,7 +8,7 @@ import { DataService } from '../../data.service'
   templateUrl: './dish-form.component.html',
   styleUrls: ['./dish-form.component.css']
 })
-export class DishFormComponent implements OnInit {
+export class DishFormComponent implements OnInit, AfterViewInit {
   isEditing = false
   dishId = null
   restaurantId = null
@@ -59,11 +59,13 @@ export class DishFormComponent implements OnInit {
         }
       })
     })
+  }
 
-    setTimeout(() => {
-      var el: any = document.getElementById('dish-name')
-      if (el) el.focus()
-    }, 300)
+  ngAfterViewInit() {
+    // el foco inicial solo tiene sentido al crear: al editar no se roba al usuario
+    if (this.route.snapshot.params['id']) return
+    var el: any = document.getElementById('dish-name')
+    if (el) el.focus()
   }
 
   selectCategory(c) {
@@ -97,17 +99,35 @@ export class DishFormComponent implements OnInit {
     return id
   }
 
-  showError(msg) {
+  showError(msg, persistent = false) {
     this.error = msg
-    setTimeout(() => this.error = null, 3000)
+    if (!persistent) setTimeout(() => this.error = null, 10000)
+  }
+
+  validate() {
+    this.errors = {}
+    if (!this.dish.name) this.errors.name = 'Indica el nombre del plato'
+    if (!this.dish.price || isNaN(this.dish.price) || this.dish.price <= 0) this.errors.price = 'Introduce un precio mayor que 0'
+    return Object.keys(this.errors).length
+  }
+
+  validationSummary(count) {
+    return 'Revisa los campos marcados (' + count + (count === 1 ? ' error)' : ' errores)')
+  }
+
+  onFieldChange() {
+    if (!this.error || Object.keys(this.errors).length === 0) return
+    var count = this.validate()
+    this.error = count ? this.validationSummary(count) : null
   }
 
   save() {
-    this.errors = {}
-    if (!this.dish.name) this.errors.name = true
-    if (!this.dish.price || isNaN(this.dish.price) || this.dish.price <= 0) this.errors.price = true
-    if (Object.keys(this.errors).length > 0) {
-      this.showError('Revisa los campos marcados')
+    var count = this.validate()
+    if (count > 0) {
+      // el resumen permanece visible hasta corregir o cerrar (WCAG 2.2.1)
+      this.showError(this.validationSummary(count), true)
+      var first = document.getElementById(this.errors.name ? 'dish-name' : 'dish-price')
+      if (first) first.focus()
       return
     }
 

@@ -70,11 +70,20 @@ textarea.form-control {
 
 .chip-remove {
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  min-width: 24px;
+  min-height: 24px;
   padding: 2px;
   border-radius: 50%;
   transition: all var(--transition);
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-ingredient-btn {
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .chip-remove:hover {
@@ -88,7 +97,7 @@ textarea.form-control {
   align-items: flex-end;
 }
 
-.add-ingredient-row select {
+.ingredient-select {
   flex: 1;
 }
 
@@ -119,13 +128,8 @@ select.form-control {
   color: var(--text-primary);
 }
 
-* :focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
 .form-control::placeholder {
-  color: #3d4256;
+  color: var(--text-secondary);
 }
 
 .form-control.invalid {
@@ -134,7 +138,7 @@ select.form-control {
 
 .label {
   font-size: 12px;
-  color: #3d4256;
+  color: var(--text-secondary);
 }
 
 .chips {
@@ -142,63 +146,109 @@ select.form-control {
   gap: 6px;
 }
 
+.category-group {
+  border: none;
+  min-width: 0;
+}
+
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
+  min-height: 32px;
   border-radius: 20px;
+  border: 1px solid var(--border-control);
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: var(--bg-hover);
   cursor: pointer;
 }
 
 .chip.selected {
   color: var(--green-light);
+  border-color: var(--green-light);
 }
 
 .toggle {
-  width: 40px;
-  height: 22px;
-  border-radius: 11px;
-  background: var(--red);
-  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  min-width: 64px;
+  min-height: 28px;
+  padding: 2px 12px 2px 4px;
+  border: 2px solid var(--border-control);
+  border-radius: 14px;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  font-size: 13px;
   cursor: pointer;
 }
 
-.toggle.on {
-  background: var(--green-medium);
-}
-
 .toggle-dot {
-  position: absolute;
-  top: 2px;
-  left: 2px;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: white;
-  transition: all var(--transition);
+  background: var(--red);
+  transition: background var(--transition);
 }
 
 .toggle.on .toggle-dot {
-  left: 20px;
+  background: var(--green-medium);
 }
 
-.toast-error {
+.toast-region {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: var(--red);
-  color: #ff9a9a;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
+  z-index: 100;
 }
 
-.btn.disabled {
+.toast-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #b91c1c;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.btn:disabled {
   opacity: 0.5;
   pointer-events: none;
 }
 
 .form-actions .btn-primary {
   cursor: pointer;
+}
+
+.required-legend,
+.field-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.required-legend {
+  margin-bottom: 12px;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.toast-close {
+  background: transparent;
+  color: #fff;
+  min-width: 24px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

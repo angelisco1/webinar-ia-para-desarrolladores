@@ -60,8 +60,8 @@
           <span class="user-role">{{ user.role }}</span>
         </div>
       </div>
-      <button class="btn-logout" (click)="logout()">
-        <lucide-icon name="log-out" [size]="16"></lucide-icon>
+      <button class="btn-logout" aria-label="Cerrar sesión" (click)="logout()">
+        <lucide-icon name="log-out" [size]="16" aria-hidden="true"></lucide-icon>
       </button>
     </div>
   </aside>

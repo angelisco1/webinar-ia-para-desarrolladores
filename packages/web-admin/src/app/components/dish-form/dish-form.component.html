@@ -1,43 +1,64 @@
 <div class="fade-in">
   <div class="page-header">
     <div class="header-back">
-      <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="back-link">
-        <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+      <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="back-link" aria-label="Volver a platos">
+        <lucide-icon name="chevron-left" [size]="18" aria-hidden="true"></lucide-icon>
       </a>
-      <div class="title">{{ isEditing ? 'Editar plato' : 'Nuevo plato' }}</div>
+      <h1 class="title">{{ isEditing ? 'Editar plato' : 'Nuevo plato' }}</h1>
     </div>
   </div>
 
-  <div class="toast-error" *ngIf="error">{{ error }}</div>
+  <div role="alert" class="toast-region">
+    <div class="toast-error" *ngIf="error">
+      <lucide-icon name="alert-circle" [size]="16" aria-hidden="true"></lucide-icon>
+      <span>{{ error }}</span>
+      <button type="button" class="toast-close" aria-label="Cerrar aviso" (click)="error = null">
+        <lucide-icon name="x" [size]="14" aria-hidden="true"></lucide-icon>
+      </button>
+    </div>
+  </div>
 
-  <form class="card form-card">
+  <form class="card form-card" (ngSubmit)="save()" novalidate>
+    <p class="required-legend">* obligatorio</p>
     <div class="form-grid">
       <div class="form-group">
-        <input id="dish-name" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" name="name" placeholder="Nombre del plato *" autocomplete="off" />
+        <label for="dish-name">Nombre del plato <span aria-hidden="true">*</span></label>
+        <input id="dish-name" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" (ngModelChange)="onFieldChange()" [attr.aria-invalid]="errors.name ? 'true' : null" [attr.aria-describedby]="errors.name ? 'dish-name-error' : null" name="name" placeholder="Nombre del plato *" autocomplete="off" required aria-required="true" />
+        <p id="dish-name-error" class="field-error" *ngIf="errors.name">
+          <lucide-icon name="alert-circle" [size]="14" aria-hidden="true"></lucide-icon> {{ errors.name }}
+        </p>
       </div>
 
       <div class="form-group">
-        <input type="text" class="form-control" [ngClass]="{'invalid': errors.price}" [(ngModel)]="dish.price" name="price" placeholder="Precio (€) *" autocomplete="off" />
+        <label for="dish-price">Precio (€) <span aria-hidden="true">*</span></label>
+        <input id="dish-price" type="text" inputmode="decimal" class="form-control" [ngClass]="{'invalid': errors.price}" [(ngModel)]="dish.price" (ngModelChange)="onFieldChange()" [attr.aria-invalid]="errors.price ? 'true' : null" name="price" placeholder="Precio (€) *" autocomplete="off" required aria-required="true" [attr.aria-describedby]="errors.price ? 'dish-price-hint dish-price-error' : 'dish-price-hint'" />
+        <span id="dish-price-hint" class="field-hint">Usa punto decimal (12.5)</span>
+        <p id="dish-price-error" class="field-error" *ngIf="errors.price">
+          <lucide-icon name="alert-circle" [size]="14" aria-hidden="true"></lucide-icon> {{ errors.price }}
+        </p>
       </div>
 
-      <div class="form-group">
-        <span class="label">Categoría</span>
+      <fieldset class="form-group category-group">
+        <legend class="label">Categoría</legend>
         <div class="chips">
-          <div *ngFor="let c of categories" class="chip" [ngClass]="{'selected': dish.category == c}" (click)="selectCategory(c)">
+          <button type="button" *ngFor="let c of categories" class="chip" [ngClass]="{'selected': dish.category == c}" [attr.aria-pressed]="dish.category == c" (click)="selectCategory(c)">
+            <lucide-icon *ngIf="dish.category == c" class="chip-check" name="check" [size]="12" aria-hidden="true"></lucide-icon>
             {{ dataService.getCategoryLabel(c) }}
-          </div>
+          </button>
         </div>
-      </div>
+      </fieldset>
 
-      <div class="form-group">
-        <span class="label">Disponible</span>
-        <div class="toggle" [ngClass]="{'on': dish.available}" (click)="toggleAvailable()">
-          <div class="toggle-dot"></div>
-        </div>
+      <div class="form-group" role="group" aria-labelledby="dish-available-label">
+        <span class="label" id="dish-available-label">Disponible</span>
+        <button type="button" role="switch" class="toggle" [ngClass]="{'on': dish.available}" [attr.aria-checked]="dish.available" aria-labelledby="dish-available-label" (click)="toggleAvailable()">
+          <span class="toggle-dot" aria-hidden="true"></span>
+          <span class="toggle-text">{{ dish.available ? 'Sí' : 'No' }}</span>
+        </button>
       </div>
 
       <div class="form-group form-full">
-        <textarea class="form-control" [(ngModel)]="dish.description" name="description" rows="3" placeholder="Descripción" tabindex="1"></textarea>
+        <label for="dish-description">Descripción</label>
+        <textarea id="dish-description" class="form-control" [(ngModel)]="dish.description" name="description" rows="3" placeholder="Descripción"></textarea>
       </div>
     </div>
 
@@ -47,29 +68,35 @@
       <div class="ingredient-chips" *ngIf="dish.ingredients.length > 0">
         <div class="ingredient-chip" *ngFor="let ing of dish.ingredients">
           <span>{{ getIngredientName(ing.ingredientId) }} — {{ ing.quantity }}</span>
-          <span class="chip-remove" (click)="removeIngredient(ing.ingredientId)">
-            <lucide-icon name="trash-2" [size]="12"></lucide-icon>
-          </span>
+          <button type="button" class="chip-remove" [attr.aria-label]="'Quitar ' + getIngredientName(ing.ingredientId)" (click)="removeIngredient(ing.ingredientId)">
+            <lucide-icon name="trash-2" [size]="14" aria-hidden="true"></lucide-icon>
+          </button>
         </div>
       </div>
 
       <div class="add-ingredient-row">
-        <select class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId">
-          <option value="">--</option>
-          <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
-        </select>
-        <input type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" />
-        <div class="btn btn-secondary btn-sm" (click)="addIngredient()">
-          <lucide-icon name="plus" [size]="14"></lucide-icon>
+        <div class="form-group ingredient-select">
+          <label for="dish-ingredient">Ingrediente</label>
+          <select id="dish-ingredient" class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId" (keydown.enter)="$event.preventDefault(); addIngredient()">
+            <option value="">Selecciona un ingrediente</option>
+            <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
+          </select>
         </div>
+        <div class="form-group">
+          <label for="dish-ingredient-qty">Cantidad</label>
+          <input id="dish-ingredient-qty" type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" (keydown.enter)="$event.preventDefault(); addIngredient()" />
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm add-ingredient-btn" aria-label="Añadir ingrediente" (click)="addIngredient()">
+          <lucide-icon name="plus" [size]="14" aria-hidden="true"></lucide-icon>
+        </button>
       </div>
     </div>
 
     <div class="form-actions">
       <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="btn btn-secondary">Cancelar</a>
-      <div class="btn btn-primary" [ngClass]="{'disabled': loading}" (click)="save()">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
         {{ loading ? 'Guardando...' : 'Guardar' }}
-      </div>
+      </button>
     </div>
   </form>
 </div>
