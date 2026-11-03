@@ -12,6 +12,7 @@ erDiagram
     restaurants ||--o{ ingredients : "tiene"
     restaurants ||--o{ dishes : "tiene"
     restaurants ||--o{ orders : "tiene"
+    restaurants ||--o{ restaurant_tables : "tiene"
     dishes ||--o{ dish_ingredients : "contiene"
     ingredients ||--o{ dish_ingredients : "usado en"
     orders ||--o{ order_items : "contiene"
@@ -74,6 +75,17 @@ erDiagram
         TEXT table_id
         TEXT client_id
         TEXT created_at
+    }
+
+    restaurant_tables {
+        TEXT id PK
+        TEXT restaurant_id FK
+        INTEGER number
+        TEXT description
+        INTEGER capacity
+        TEXT status
+        TEXT created_at
+        TEXT updated_at
     }
 
     order_items {
@@ -182,6 +194,28 @@ Relación muchos-a-muchos entre platos e ingredientes.
 
 ---
 
+### `restaurant_tables`
+
+Mesas de cada restaurante.
+
+| Columna | Tipo | Nullable | Descripción |
+| --- | --- | --- | --- |
+| `id` | TEXT | No | UUID, clave primaria |
+| `restaurant_id` | TEXT | No | FK → `restaurants.id` |
+| `number` | INTEGER | No | Número de mesa (entero >= 1) |
+| `description` | TEXT | Sí | Descripción (ej. "Terraza") |
+| `capacity` | INTEGER | No | Número de comensales (entero >= 1) |
+| `status` | TEXT | No | Estado: libre, ocupada, reservada (default: `libre`) |
+| `created_at` | TEXT | No | Fecha de creación |
+| `updated_at` | TEXT | No | Fecha de última actualización |
+
+**Restricciones:**
+
+- UNIQUE (`restaurant_id`, `number`): no hay dos mesas con el mismo número en un restaurante.
+- FK a `restaurants.id` sin cascada.
+
+---
+
 ### `orders`
 
 Pedidos de los clientes.
@@ -190,7 +224,7 @@ Pedidos de los clientes.
 | --- | --- | --- | --- |
 | `id` | TEXT | No | UUID, clave primaria |
 | `restaurant_id` | TEXT | No | FK → `restaurants.id` |
-| `table_id` | TEXT | Sí | Identificador de mesa (opcional) |
+| `table_id` | TEXT | Sí | ID de la mesa (`restaurant_tables.id`), opcional. Sin FK a nivel de BD: el servicio comprueba que la mesa existe y es del mismo restaurante |
 | `client_id` | TEXT | Sí | ID del cliente (opcional) |
 | `created_at` | TEXT | No | Fecha de creación |
 

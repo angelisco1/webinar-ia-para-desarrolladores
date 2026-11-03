@@ -51,7 +51,7 @@ contexts/employee/
 
 `contexts/shared/` no es un bounded context de negocio: contiene el value object `Email` y los middlewares y el `errorHandler` de Express.
 
-### 2. Por capas → `restaurant`, `dish`, `ingredient`, `order`
+### 2. Por capas → `restaurant`, `dish`, `ingredient`, `order`, `table`
 
 El resto de dominios **no** usan bounded contexts. Se organizan en carpetas transversales por tipo de fichero:
 
@@ -310,6 +310,25 @@ Todos cuelgan de `/api/v1`. La columna **Roles** indica qué valores de `req.use
 
 Los ingredientes son **más restrictivos** que los platos: solo `admin` puede crear, editar o borrar.
 
+### Mesas
+
+| Método | Ruta | Roles |
+| --- | --- | --- |
+| `GET` | `/api/v1/restaurants/:restaurantId/tables` | admin, manager, camarero |
+| `POST` | `/api/v1/restaurants/:restaurantId/tables` | admin |
+| `GET` | `/api/v1/restaurants/:restaurantId/tables/available?guests=N` | autenticado (incluido cliente) — **requiere `guests`** entero >= 1 (400 si falta) |
+| `GET` | `/api/v1/restaurants/:restaurantId/tables/:tableId` | admin, manager, camarero |
+| `PUT` | `/api/v1/restaurants/:restaurantId/tables/:tableId` | admin |
+| `DELETE` | `/api/v1/restaurants/:restaurantId/tables/:tableId` | admin — 409 si está `ocupada` |
+| `PATCH` | `/api/v1/restaurants/:restaurantId/tables/:tableId/status` | admin, manager, camarero |
+| `POST` | `/api/v1/restaurants/:restaurantId/tables/:tableId/occupy` | autenticado — `libre → ocupada` |
+
+`/available` se declara antes que `/:tableId` para que no se interprete como un id. `available` devuelve solo mesas `libre` con `capacity >= guests`, ordenadas por capacidad y número. El contrato completo está en `docs/api/openapi.yaml`.
+
+La ocupación es **atómica**: el repositorio ejecuta `UPDATE ... SET status = 'ocupada' WHERE id = ? AND restaurant_id = ? AND status = 'libre'` y mira `changes`; si es 0 el servicio distingue entre mesa inexistente (404) y no disponible (409), de modo que dos clientes no pueden coger la misma mesa. Una mesa `reservada` tampoco se puede ocupar.
+
+Al crear un pedido, si viene `tableId`, `OrderService` comprueba que la mesa existe en el restaurante del pedido; si no, lanza `TableNotFoundError` (que `OrderController` devuelve como 400 con `{ error: <mensaje> }`).
+
 ### Pedidos
 
 | Método | Ruta | Roles |
@@ -345,7 +364,8 @@ Ambos responden directamente, sin pasar por el `errorHandler`.
 
 Jerarquía: `Error` → `AppError` (abstracta) → errores específicos en `errors/DomainErrors.ts`. `AppError` asigna `this.name = this.constructor.name`, y el `errorHandler` decide el código HTTP a partir de ese nombre:
 
-- **404**: `EmployeeNotFoundError`, `RestaurantNotFoundError`, `IngredientNotFoundError`, `DishNotFoundError`
+- **404**: `EmployeeNotFoundError`, `RestaurantNotFoundError`, `IngredientNotFoundError`, `DishNotFoundError`, `TableNotFoundError`
+- **409**: `DuplicateTableNumberError`, `TableNotAvailableError`, `TableInUseError`
 - **401**: `InvalidCredentialsError`
 - **400**: cualquier otro `AppError`
 - **500**: errores no controlados
