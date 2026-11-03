@@ -9,3 +9,6 @@ dist/
 # SQLite: se regenera con `npm run seed`
 *.db
 *.db-journal
+
+# Worktrees de implement-plan
+.claude/worktrees/
