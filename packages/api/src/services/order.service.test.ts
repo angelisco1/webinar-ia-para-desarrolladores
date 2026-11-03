@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { OrderService } from './order.service.js'
 import { MockOrderRepository } from '@repositories/mocks/MockOrderRepository.js'
+import { MockTableRepository } from '@repositories/mocks/MockTableRepository.js'
 import type { Order } from '@models/order.model.js'
-import { OrderNotFoundError, InvalidOrderStatusError } from '@errors/DomainErrors.js'
+import { OrderNotFoundError, InvalidOrderStatusError, TableNotFoundError } from '@errors/DomainErrors.js'
 
 describe('OrderService.updateItemStatus', () => {
     let repo: MockOrderRepository
@@ -11,7 +12,7 @@ describe('OrderService.updateItemStatus', () => {
 
     beforeEach(async () => {
         repo = new MockOrderRepository()
-        service = new OrderService(repo)
+        service = new OrderService(repo, new MockTableRepository())
 
         testOrder = {
             id: 'order-1',
@@ -45,5 +46,41 @@ describe('OrderService.updateItemStatus', () => {
     it('should throw DomainError if status is invalid', async () => {
         await expect(service.updateItemStatus('order-1', 'item-1', 'invalid-status'))
             .rejects.toThrow(InvalidOrderStatusError)
+    })
+})
+
+describe('OrderService.create con mesa', () => {
+    let orderRepo: MockOrderRepository
+    let tableRepo: MockTableRepository
+    let service: OrderService
+    const items = [{ dishId: 'dish-1', quantity: 1, notes: null }]
+
+    beforeEach(async () => {
+        orderRepo = new MockOrderRepository()
+        tableRepo = new MockTableRepository()
+        service = new OrderService(orderRepo, tableRepo)
+        const now = new Date().toISOString()
+        await tableRepo.save({ id: 't1', restaurantId: 'rest-1', number: 1, description: null, capacity: 4, status: 'ocupada', createdAt: now, updatedAt: now })
+    })
+
+    it('lanza TableNotFoundError si la mesa no existe', async () => {
+        await expect(service.create({ restaurantId: 'rest-1', tableId: 'nope', clientId: null, items }))
+            .rejects.toThrow(TableNotFoundError)
+        expect(orderRepo.orders).toHaveLength(0)
+    })
+
+    it('lanza TableNotFoundError si la mesa es de otro restaurante', async () => {
+        await expect(service.create({ restaurantId: 'rest-2', tableId: 't1', clientId: null, items }))
+            .rejects.toThrow(TableNotFoundError)
+    })
+
+    it('crea el pedido con una mesa válida', async () => {
+        const order = await service.create({ restaurantId: 'rest-1', tableId: 't1', clientId: null, items })
+        expect(order.tableId).toBe('t1')
+    })
+
+    it('crea el pedido sin mesa', async () => {
+        const order = await service.create({ restaurantId: 'rest-1', tableId: null, clientId: null, items })
+        expect(order.tableId).toBeNull()
     })
 })
