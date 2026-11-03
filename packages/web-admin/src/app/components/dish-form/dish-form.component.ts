@@ -1,6 +1,14 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core'
+import { Component, OnInit, inject } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { DataService } from '../../data.service'
+import { firstValueFrom } from 'rxjs'
+import { DishApi } from '../../api/dish.api'
+import { IngredientApi } from '../../api/ingredient.api'
+import { DISH_CATEGORIES, Dish, DishCategory } from '../../models/dish.model'
+import { Ingredient } from '../../models/ingredient.model'
+import { extractApiError } from '../../shared/api-error'
+import { DishStore } from '../../store/dish.store'
+import { DishFormValue, toDishDto } from './dish-form.mapper'
+import { DishFormErrors, validateDishForm } from './dish-form.validation'
 
 @Component({
   selector: 'app-dish-form',
@@ -8,18 +16,24 @@ import { DataService } from '../../data.service'
   templateUrl: './dish-form.component.html',
   styleUrls: ['./dish-form.component.css']
 })
-export class DishFormComponent implements OnInit, AfterViewInit {
+export class DishFormComponent implements OnInit {
+  private route = inject(ActivatedRoute)
+  private router = inject(Router)
+  private store = inject(DishStore)
+  private dishApi = inject(DishApi)
+  private ingredientApi = inject(IngredientApi)
+
   isEditing = false
-  dishId = null
-  restaurantId = null
+  dishId: string | null = null
+  restaurantId: string | null = null
   loading = false
-  error = null
-  errors: any = {}
+  error: string | null = null
+  errors: DishFormErrors = {}
 
-  categories = ['entrante', 'principal', 'postre', 'bebida']
-  allIngredients: any[] = []
+  categories = Object.keys(DISH_CATEGORIES) as DishCategory[]
+  allIngredients: Ingredient[] = []
 
-  dish: any = {
+  dish: DishFormValue = {
     name: '',
     description: null,
     price: 0,
@@ -28,47 +42,46 @@ export class DishFormComponent implements OnInit, AfterViewInit {
     ingredients: []
   }
 
-  newIngredientId = ''
-  newIngredientQty = 1
+  async ngOnInit() {
+    const params = this.route.snapshot.paramMap
+    this.restaurantId = params.get('restaurantId')
+    this.dishId = params.get('id')
+    this.isEditing = !!this.dishId
 
-  constructor(private route: ActivatedRoute, private router: Router, public dataService: DataService) {}
+    try {
+      this.allIngredients = await firstValueFrom(this.ingredientApi.list(this.restaurantId))
+    } catch {
+      return
+    }
+    if (!this.dishId) return
 
-  ngOnInit() {
-    this.route.params.subscribe(params => {
-      this.restaurantId = params['restaurantId']
-      this.dataService.getIngredients(this.restaurantId).subscribe((ingredients: any) => {
-        this.allIngredients = ingredients
-        this.dataService.ingredients = ingredients
-
-        if (params['id']) {
-          this.isEditing = true
-          this.dishId = params['id']
-          var cached = this.dataService.dishes.find(d => d.id == this.dishId)
-          if (cached) {
-            this.dish = cached
-          } else {
-            this.loading = true
-            this.dataService.getDish(this.restaurantId, this.dishId).subscribe((dish: any) => {
-              this.dish = dish
-              this.loading = false
-            }, err => {
-              this.showError('No se pudo cargar el plato.')
-              this.loading = false
-            })
-          }
-        }
-      })
-    })
+    const cached = this.store.findById(this.restaurantId, this.dishId)
+    if (cached) {
+      this.dish = this.toFormValue(cached)
+      return
+    }
+    this.loading = true
+    try {
+      this.dish = this.toFormValue(await firstValueFrom(this.dishApi.get(this.restaurantId, this.dishId)))
+    } catch {
+      this.showError('No se pudo cargar el plato.')
+    } finally {
+      this.loading = false
+    }
   }
 
-  ngAfterViewInit() {
-    // el foco inicial solo tiene sentido al crear: al editar no se roba al usuario
-    if (this.route.snapshot.params['id']) return
-    var el: any = document.getElementById('dish-name')
-    if (el) el.focus()
+  private toFormValue(dish: Dish): DishFormValue {
+    return {
+      name: dish.name,
+      description: dish.description,
+      price: dish.price,
+      category: dish.category,
+      available: dish.available,
+      ingredients: dish.ingredients
+    }
   }
 
-  selectCategory(c) {
+  selectCategory(c: DishCategory) {
     this.dish.category = c
   }
 
@@ -76,76 +89,40 @@ export class DishFormComponent implements OnInit, AfterViewInit {
     this.dish.available = !this.dish.available
   }
 
-  addIngredient() {
-    if (!this.newIngredientId || this.newIngredientQty <= 0) return
-    for (var i = 0; i < this.dish.ingredients.length; i++) {
-      if (this.dish.ingredients[i].ingredientId == this.newIngredientId) return
-    }
-    this.dish.ingredients.push({ ingredientId: this.newIngredientId, quantity: this.newIngredientQty })
-    this.newIngredientId = ''
-    this.newIngredientQty = 1
-  }
-
-  removeIngredient(id) {
-    this.dish.ingredients = this.dish.ingredients.filter(i => i.ingredientId != id)
-  }
-
-  getIngredientName(id) {
-    for (var i = 0; i < this.allIngredients.length; i++) {
-      if (this.allIngredients[i].id == id) {
-        return this.allIngredients[i].name + ' (' + this.allIngredients[i].unit + ')'
-      }
-    }
-    return id
-  }
-
-  showError(msg, persistent = false) {
+  showError(msg: string, persistent = false) {
     this.error = msg
     if (!persistent) setTimeout(() => this.error = null, 10000)
   }
 
-  validate() {
-    this.errors = {}
-    if (!this.dish.name) this.errors.name = 'Indica el nombre del plato'
-    if (!this.dish.price || isNaN(this.dish.price) || this.dish.price <= 0) this.errors.price = 'Introduce un precio mayor que 0'
-    return Object.keys(this.errors).length
-  }
-
-  validationSummary(count) {
+  private validationSummary(count: number): string {
     return 'Revisa los campos marcados (' + count + (count === 1 ? ' error)' : ' errores)')
   }
 
   onFieldChange() {
     if (!this.error || Object.keys(this.errors).length === 0) return
-    var count = this.validate()
+    this.errors = validateDishForm(this.dish)
+    const count = Object.keys(this.errors).length
     this.error = count ? this.validationSummary(count) : null
   }
 
-  save() {
-    var count = this.validate()
+  async save() {
+    this.errors = validateDishForm(this.dish)
+    const count = Object.keys(this.errors).length
     if (count > 0) {
       // el resumen permanece visible hasta corregir o cerrar (WCAG 2.2.1)
       this.showError(this.validationSummary(count), true)
-      var first = document.getElementById(this.errors.name ? 'dish-name' : 'dish-price')
-      if (first) first.focus()
+      document.getElementById(this.errors.name ? 'dish-name' : 'dish-price')?.focus()
       return
     }
 
     this.loading = true
-    var body = {
-      name: this.dish.name,
-      description: this.dish.description,
-      price: parseFloat(this.dish.price),
-      category: this.dish.category,
-      available: this.dish.available,
-      ingredients: this.dish.ingredients
-    }
-    this.dataService.saveDish(this.restaurantId, body, this.dishId).subscribe(() => {
+    try {
+      await this.store.save(this.restaurantId, toDishDto(this.dish), this.dishId ?? undefined)
       this.loading = false
       this.router.navigate(['/restaurants/' + this.restaurantId + '/dishes'])
-    }, err => {
+    } catch (err) {
       this.loading = false
-      this.showError(err.error && err.error.message ? err.error.message : 'Error al guardar el plato.')
-    })
+      this.showError(extractApiError(err, 'Error al guardar el plato.'))
+    }
   }
 }

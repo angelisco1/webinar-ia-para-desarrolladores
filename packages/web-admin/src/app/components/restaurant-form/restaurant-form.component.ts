@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { DataService } from '../../data.service'
+import { RestaurantApi } from '../../api/restaurant.api'
 import { ShellComponent } from '../shell/shell.component'
 
 @Component({
@@ -25,7 +25,7 @@ export class RestaurantFormComponent implements OnInit {
     logoUrl: null
   }
 
-  constructor(private route: ActivatedRoute, private router: Router, private dataService: DataService) {}
+  constructor(private route: ActivatedRoute, private router: Router, private api: RestaurantApi) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {
@@ -33,7 +33,7 @@ export class RestaurantFormComponent implements OnInit {
         this.isEditing = true
         this.restaurantId = params['id']
         this.loading = true
-        this.dataService.getRestaurant(params['id']).subscribe(data => {
+        this.api.get(params['id']).subscribe(data => {
           this.restaurant = data
           this.loading = false
         }, err => {
@@ -75,7 +75,8 @@ export class RestaurantFormComponent implements OnInit {
       ownerLastName: this.restaurant.ownerLastName,
       logoUrl: this.restaurant.logoUrl
     }
-    this.dataService.saveRestaurant(body, this.restaurantId).subscribe(res => {
+    var request = this.restaurantId ? this.api.update(this.restaurantId, body) : this.api.create(body)
+    request.subscribe(res => {
       this.loading = false
       // refrescamos el menu lateral
       ShellComponent.instance.loadRestaurants()

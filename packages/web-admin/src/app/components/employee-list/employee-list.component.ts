@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core'
-import { DataService } from '../../data.service'
+import { Component, OnInit, inject } from '@angular/core'
+import { ActivatedRoute } from '@angular/router'
+import { EmployeeStore } from '../../store/employee.store'
 
 @Component({
   selector: 'app-employee-list',
@@ -8,12 +9,14 @@ import { DataService } from '../../data.service'
   styleUrls: ['./employee-list.component.css']
 })
 export class EmployeeListComponent implements OnInit {
+  private store = inject(EmployeeStore)
+  private route = inject(ActivatedRoute)
 
-  constructor(public dataService: DataService) {}
+  restaurantId: string = this.route.snapshot.paramMap.get('restaurantId')
+  employees = this.store.employees
 
   ngOnInit() {
-    this.dataService.employees = []
-    this.dataService.getEmployees(this.dataService.getRestaurantIdFromUrl())
+    this.store.load(this.restaurantId)
   }
 
   getRoleBadgeClass(role) {

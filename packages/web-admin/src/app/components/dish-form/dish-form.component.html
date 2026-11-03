@@ -23,9 +23,9 @@
     <div class="form-grid">
       <div class="form-group">
         <label for="dish-name">Nombre del plato <span aria-hidden="true">*</span></label>
-        <input id="dish-name" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" (ngModelChange)="onFieldChange()" [attr.aria-invalid]="errors.name ? 'true' : null" [attr.aria-describedby]="errors.name ? 'dish-name-error' : null" name="name" placeholder="Nombre del plato *" autocomplete="off" required aria-required="true" />
+        <input id="dish-name" [appAutofocus]="!isEditing" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" (ngModelChange)="onFieldChange()" [attr.aria-invalid]="errors.name ? 'true' : null" [attr.aria-describedby]="errors.name ? 'dish-name-error' : null" name="name" placeholder="Nombre del plato *" autocomplete="off" required aria-required="true" />
         <p id="dish-name-error" class="field-error" *ngIf="errors.name">
-          <lucide-icon name="alert-circle" [size]="14" aria-hidden="true"></lucide-icon> {{ errors.name }}
+          <lucide-icon name="alert-circle" [size]="14" aria-hidden="true"></lucide-icon> Indica el nombre del plato
         </p>
       </div>
 
@@ -34,7 +34,7 @@
         <input id="dish-price" type="text" inputmode="decimal" class="form-control" [ngClass]="{'invalid': errors.price}" [(ngModel)]="dish.price" (ngModelChange)="onFieldChange()" [attr.aria-invalid]="errors.price ? 'true' : null" name="price" placeholder="Precio (€) *" autocomplete="off" required aria-required="true" [attr.aria-describedby]="errors.price ? 'dish-price-hint dish-price-error' : 'dish-price-hint'" />
         <span id="dish-price-hint" class="field-hint">Usa punto decimal (12.5)</span>
         <p id="dish-price-error" class="field-error" *ngIf="errors.price">
-          <lucide-icon name="alert-circle" [size]="14" aria-hidden="true"></lucide-icon> {{ errors.price }}
+          <lucide-icon name="alert-circle" [size]="14" aria-hidden="true"></lucide-icon> Introduce un precio mayor que 0
         </p>
       </div>
 
@@ -43,7 +43,7 @@
         <div class="chips">
           <button type="button" *ngFor="let c of categories" class="chip" [ngClass]="{'selected': dish.category == c}" [attr.aria-pressed]="dish.category == c" (click)="selectCategory(c)">
             <lucide-icon *ngIf="dish.category == c" class="chip-check" name="check" [size]="12" aria-hidden="true"></lucide-icon>
-            {{ dataService.getCategoryLabel(c) }}
+            {{ c | categoryLabel }}
           </button>
         </div>
       </fieldset>
@@ -62,35 +62,7 @@
       </div>
     </div>
 
-    <div class="ingredients-section">
-      <b>Ingredientes del plato</b>
-
-      <div class="ingredient-chips" *ngIf="dish.ingredients.length > 0">
-        <div class="ingredient-chip" *ngFor="let ing of dish.ingredients">
-          <span>{{ getIngredientName(ing.ingredientId) }} — {{ ing.quantity }}</span>
-          <button type="button" class="chip-remove" [attr.aria-label]="'Quitar ' + getIngredientName(ing.ingredientId)" (click)="removeIngredient(ing.ingredientId)">
-            <lucide-icon name="trash-2" [size]="14" aria-hidden="true"></lucide-icon>
-          </button>
-        </div>
-      </div>
-
-      <div class="add-ingredient-row">
-        <div class="form-group ingredient-select">
-          <label for="dish-ingredient">Ingrediente</label>
-          <select id="dish-ingredient" class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId" (keydown.enter)="$event.preventDefault(); addIngredient()">
-            <option value="">Selecciona un ingrediente</option>
-            <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="dish-ingredient-qty">Cantidad</label>
-          <input id="dish-ingredient-qty" type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" (keydown.enter)="$event.preventDefault(); addIngredient()" />
-        </div>
-        <button type="button" class="btn btn-secondary btn-sm add-ingredient-btn" aria-label="Añadir ingrediente" (click)="addIngredient()">
-          <lucide-icon name="plus" [size]="14" aria-hidden="true"></lucide-icon>
-        </button>
-      </div>
-    </div>
+    <app-dish-ingredients-editor [all]="allIngredients" [selected]="dish.ingredients" (selectedChange)="dish.ingredients = $event"></app-dish-ingredients-editor>
 
     <div class="form-actions">
       <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="btn btn-secondary">Cancelar</a>

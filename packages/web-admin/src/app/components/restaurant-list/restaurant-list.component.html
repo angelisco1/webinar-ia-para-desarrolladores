@@ -7,14 +7,14 @@
     </a>
   </div>
 
-  <div class="spinner" *ngIf="dataService.loading"></div>
+  <div class="spinner" *ngIf="loading()"></div>
 
-  <div class="empty-state card" *ngIf="!dataService.loading && dataService.restaurants.length == 0">
+  <div class="empty-state card" *ngIf="!loading() && restaurants().length == 0">
     <lucide-icon name="utensils" [size]="40"></lucide-icon>
     <p>No hay restaurantes registrados</p>
   </div>
 
-  <div class="card table-container" *ngIf="!dataService.loading && dataService.restaurants.length > 0">
+  <div class="card table-container" *ngIf="!loading() && restaurants().length > 0">
     <table>
       <thead>
         <tr>
@@ -27,7 +27,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let r of dataService.restaurants">
+        <tr *ngFor="let r of restaurants()">
           <td>
             <div class="restaurant-name">
               <img *ngIf="r.logoUrl" [src]="r.logoUrl" class="restaurant-logo" />

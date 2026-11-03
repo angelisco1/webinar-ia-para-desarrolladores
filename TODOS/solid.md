@@ -9,14 +9,16 @@ Contexto general: `web-admin` usa NgModule, componentes `standalone: false`, `Ht
 
 ## SRP: Responsabilidad única
 
-- [ ] **[Alta] `DataService` es un "god service"** — `admin/app/data.service.ts:11-116`
+- [x] **[Alta] `DataService` es un "god service"** — `admin/app/data.service.ts:11-116`
   - Mezcla en una sola clase: HTTP de 4 dominios (restaurantes, platos, ingredientes, empleados), estado global mutable (`restaurants`, `dishes`, `ingredients`, `employees`, `loading`, `currentRestaurantId`), sesión de usuario (`user`, l.21, `isAdmin()` l.98 leyendo `localStorage`), formateo de UI (`formatPrice` l.102, `getCategoryLabel` l.106) y parsing de URL (`getRestaurantIdFromUrl` l.114, con `window.location`).
   - Mezcla además estilos: unos métodos devuelven `Observable` y otros hacen `subscribe` internamente (l.29, l.86); duplica estado (`restaurants` array + `restaurants$`).
   - Sugerencia: dividir en `RestaurantApi`/`DishApi`/`IngredientApi`/`EmployeeApi` (solo HTTP), stores por feature con signals (`DishStore`, etc.), `AuthStore` (ya existe en shared) para usuario/rol, pipes (`priceFormat`, `categoryLabel`) para formato, y leer `restaurantId` desde `ActivatedRoute`/`withComponentInputBinding`.
+  - **Resuelto (issue #2)**: `DataService` eliminado; sustituido por `api/` (solo HTTP), `store/` (signals), pipes `priceFormat`/`categoryLabel` y `restaurantId` desde `ActivatedRoute`. El usuario/rol (`isAdmin`) no tenía usos y se eliminó.
 
-- [ ] **[Alta] `DishFormComponent` hace demasiado** — `admin/app/components/dish-form/dish-form.component.ts:11-131`
+- [x] **[Alta] `DishFormComponent` hace demasiado** — `admin/app/components/dish-form/dish-form.component.ts:11-131`
   - Carga ingredientes por HTTP, usa caché del servicio, carga el plato, valida (l.105-112), construye el DTO (l.115-122), gestiona la lista de ingredientes del plato (l.77-98), enfoca el DOM con `setTimeout` + `document.getElementById` (l.63-66), maneja el timeout de errores (l.100) y navega.
   - Sugerencia: extraer validación a una función/validadores de `ReactiveForms`, un sub-componente `dish-ingredients-editor`, un mapper `toDishDto()`, un servicio/directiva de notificaciones (`autofocus` como directiva) y un resolver para cargar datos.
+  - **Resuelto (issue #2)**: validación, mapper `toDishDto`, `dish-ingredients-editor`, directiva `appAutofocus` y `extractApiError`; sin `document.getElementById`.
 
 - [ ] **[Alta] `ShellComponent` mezcla layout, datos, sesión y navegación** — `admin/app/components/shell/shell.component.ts:11-74`
   - Carga restaurantes con HTTP directo (l.55), lee usuario de `localStorage` (l.25), decide redirecciones por rol (l.43-50), parsea la URL con regex dos veces (l.28, l.36), gestiona el menú expandido y hace logout manual (l.70-73, duplicando `AuthService.logout()`).
@@ -27,9 +29,10 @@ Contexto general: `web-admin` usa NgModule, componentes `standalone: false`, `Ht
   - Cada uno repite validaciones manuales, construcción del body y extracción de `err.error.message` (l.85, l.55, l.70). Lógica de dominio (reglas de validación) dentro de la UI.
   - Sugerencia: validadores reutilizables o Reactive Forms, un helper `extractApiError(err, fallback)`, mappers a DTO.
 
-- [ ] **[Media] `DishListComponent` mezcla UI, filtrado, mutación de estado y actualización de disponibilidad** — `dish-list/dish-list.component.ts:33-77`
+- [x] **[Media] `DishListComponent` mezcla UI, filtrado, mutación de estado y actualización de disponibilidad** — `dish-list/dish-list.component.ts:33-77`
   - `getDishes()` se llama desde la plantilla (recalcula en cada CD y tiene un `console.log`, l.34); `toggleAvailable` reconstruye el DTO completo del plato (l.51-58) y muta el objeto (l.60); usa `alert`/`confirm` directamente; muta `dataService.dishes` desde fuera (l.25, l.70).
   - Sugerencia: `computed()` para el filtro, endpoint/método `setAvailability(id, value)` en el store, servicio de diálogos (`ConfirmService`) en lugar de `confirm/alert`.
+  - **Resuelto (issue #2)**: `computed()` para el filtro, `DishStore.setAvailability`/`remove`, `DialogService`. Nota: la API no tiene PATCH, así que `setAvailability` sigue enviando el DTO completo con `PUT`.
 
 - [ ] **[Media] `IngredientListComponent` / `IngredientFormComponent` hacen HTTP directamente y construyen URLs** — `ingredient-list.component.ts:16-42`, `ingredient-form.component.ts:26-72`
   - Duplican `'/api/v1/...'` (hardcode, ignorando el token `API_URL`), parsean `window.location.pathname` (l.19) y en edición descargan todos los ingredientes para buscar uno (l.36-41).
@@ -97,13 +100,15 @@ Contexto general: `web-admin` usa NgModule, componentes `standalone: false`, `Ht
 - [ ] **[Alta] Consumidores dependen de la superficie completa de `DataService`** — `dish-list`, `dish-form`, `employee-list`, `employee-form`, `restaurant-form` inyectan `DataService`
   - `EmployeeListComponent` solo necesita empleados y el id de restaurante, pero recibe y puede tocar todo (platos, ingredientes, usuario, utilidades). `public http` (l.23) además expone el `HttpClient` a terceros (lo usa `shell.component.ts:55`).
   - Sugerencia: servicios/stores por feature con API mínima; hacer `http` privado.
+  - **Parcialmente resuelto (issue #2)**: `DataService` ya no existe y los consumidores usan APIs/stores mínimos. Falta migrar `ingredient-list`/`ingredient-form` (HTTP directo) y el shell (`static instance`).
 
 - [ ] **[Media] Modelos anchos o inexistentes (`any`)** — todo `web-admin`; `AuthStore._user` `signal<any>` (`auth.store.ts:8`, `setSession(token, user: any)` l.17)
   - Sin interfaces `Restaurant`/`Dish`/`Ingredient`/`Employee`, cada componente trabaja con objetos completos (p. ej. el formulario de restaurante maneja `ownerFirstName`, `logoUrl` en el mismo objeto de edición y creación). El `LoginResponse.employee` de `auth.service.ts:8-18` (no exportado) es el único modelo tipado.
   - Sugerencia: `models/` por feature con `Dish`, `CreateDishDto`, `UpdateDishDto`, `AuthUser` exportado desde shared.
 
-- [ ] **[Media] `DishFormComponent` maneja un único objeto `dish: any` para edición, UI y DTO** — `dish-form.component.ts:22-29,115-122`
+- [x] **[Media] `DishFormComponent` maneja un único objeto `dish: any` para edición, UI y DTO** — `dish-form.component.ts:22-29,115-122`
   - Mezcla estado de formulario (`newIngredientId`, `newIngredientQty`) con datos de dominio. Sugerencia: `FormGroup` tipado separado del modelo de dominio.
+  - **Resuelto (issue #2)**: `DishFormValue` tipado, separado de `Dish`/`DishDto`; el estado de UI de ingredientes vive en el subcomponente. Se mantiene `ngModel` (sin Reactive Forms).
 
 - [ ] **[Baja] `index.ts` de shared exporta todo** — `web-shared/src/index.ts:1-8`
   - Componentes, store, servicio, guard e interceptores en un único barrel; una app que solo necesita el guard arrastra el resto. Sugerencia: entry points secundarios (`/auth`, `/http`, `/components`) si crece.
@@ -118,9 +123,11 @@ Contexto general: `web-admin` usa NgModule, componentes `standalone: false`, `Ht
 
 - [ ] **[Alta] URL de la API hardcodeada en vez de inyectada** — `data.service.ts:6` (`// TODO: mover a environment`), `shell.component.ts:55`, `ingredient-list.component.ts:25,36`, `ingredient-form.component.ts:36,63`; existe `API_URL` (`web-shared/src/lib/tokens.ts`) provisto en `app.module.ts:57`
   - Sugerencia: inyectar `API_URL` en una clase base de API o un `ApiClient`.
+  - **Parcialmente resuelto (issue #2)**: las APIs nuevas de `web-admin` usan `API_URL`; falta `ingredient-*`.
 
 - [ ] **[Alta] Componentes acoplados a `HttpClient` y a `window`/`document`** — `ingredient-list.component.ts:16,19`, `ingredient-form.component.ts:26`, `dish-list.component.ts`/`employee-list.component.ts` vía `getRestaurantIdFromUrl()` (`data.service.ts:114`), `dish-form.component.ts:64` (`document.getElementById`), `shell.component.ts:72`/`auth.interceptor.ts:18` (`window.location.href`)
   - Sugerencia: repositorios/APIs inyectables, `ActivatedRoute`/`input()` con `withComponentInputBinding` para params, `Router`/`DOCUMENT` inyectados o directivas.
+  - **Parcialmente resuelto (issue #2)**: platos, empleados y restaurantes usan APIs, `ActivatedRoute` y `DOCUMENT`; falta `ingredient-*` y el shell (`window.location.href`).
 
 - [ ] **[Alta] Acoplamiento componente a componente mediante singleton estático** — `shell.component.ts:13,21`, `restaurant-form.component.ts:81` (`ShellComponent.instance.loadRestaurants()`), `restaurant-dashboard.component.ts:3,16` (`private shell: ShellComponent`)
   - Un formulario depende de la implementación concreta del shell y de que esté instanciado; la `static instance` es estado global oculto. El dashboard sondea con `setTimeout(500)` hasta que el shell tenga datos.
@@ -129,9 +136,11 @@ Contexto general: `web-admin` usa NgModule, componentes `standalone: false`, `Ht
 - [ ] **[Media] Estado mutable público compartido entre componentes** — `data.service.ts:14-20`; mutaciones desde fuera: `dish-form.component.ts:41`, `dish-list.component.ts:25,70`, `employee-form.component.ts:51`, `employee-list.component.ts:15`, `shell.component.ts:57`
   - Los componentes dependen de los detalles internos de almacenamiento del servicio y lo modifican directamente (incluso `dishes.find(...)` como caché en `dish-form.component.ts:46`).
   - Sugerencia: stores con signals privadas expuestas como readonly (convención del proyecto) y métodos de intención.
+  - **Parcialmente resuelto (issue #2)**: `DataService` eliminado y stores con signals readonly; falta que el shell deje de usar `ShellComponent.instance`.
 
 - [ ] **[Media] `confirm()`/`alert()` nativos en lógica de componentes** — `dish-list.component.ts:62,68,74`, `ingredient-list.component.ts:35,39`
   - Dependencia directa de globales del navegador; difícil de sustituir/testear. Sugerencia: `DialogService`/`NotificationService` inyectable.
+  - **Parcialmente resuelto (issue #2)**: `dish-list` usa `DialogService`; falta `ingredient-list`.
 
 - [ ] **[Baja] `AuthService` depende de `Router` concreto para `logout`** — `auth.service.ts:24,49`; `LoginComponent`/`RegisterComponent` navegan a `'/'` fijo (`login.component.ts:28`, `register.component.ts:42`)
   - Sugerencia: token `POST_LOGIN_URL`/`LOGIN_ROUTE` configurable por app.

@@ -12,6 +12,7 @@
     "dev:clientes": "npm run start -w @resttek/web-clientes",
     "test": "npm run test -w @resttek/api",
     "seed": "npm run seed -w @resttek/api",
+    "test:admin": "npm test -w @resttek/web-admin",
     "test:e2e": "playwright test",
     "e2e:video": "playwright test e2e/dish-form-keyboard-video.spec.ts --headed"
   },
