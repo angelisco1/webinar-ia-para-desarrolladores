@@ -10,14 +10,18 @@
 
   <div class="toast-error" *ngIf="error">{{ error }}</div>
 
-  <form class="card form-card">
+  <form class="card form-card" novalidate>
+    <p class="required-legend">* obligatorio</p>
     <div class="form-grid">
       <div class="form-group">
-        <input id="dish-name" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" name="name" placeholder="Nombre del plato *" autocomplete="off" />
+        <label for="dish-name">Nombre del plato <span aria-hidden="true">*</span></label>
+        <input id="dish-name" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" name="name" placeholder="Nombre del plato *" autocomplete="off" required aria-required="true" />
       </div>
 
       <div class="form-group">
-        <input type="text" class="form-control" [ngClass]="{'invalid': errors.price}" [(ngModel)]="dish.price" name="price" placeholder="Precio (€) *" autocomplete="off" />
+        <label for="dish-price">Precio (€) <span aria-hidden="true">*</span></label>
+        <input id="dish-price" type="text" inputmode="decimal" class="form-control" [ngClass]="{'invalid': errors.price}" [(ngModel)]="dish.price" name="price" placeholder="Precio (€) *" autocomplete="off" required aria-required="true" aria-describedby="dish-price-hint" />
+        <span id="dish-price-hint" class="field-hint">Usa punto decimal (12.5)</span>
       </div>
 
       <div class="form-group">
@@ -37,7 +41,8 @@
       </div>
 
       <div class="form-group form-full">
-        <textarea class="form-control" [(ngModel)]="dish.description" name="description" rows="3" placeholder="Descripción" tabindex="1"></textarea>
+        <label for="dish-description">Descripción</label>
+        <textarea id="dish-description" class="form-control" [(ngModel)]="dish.description" name="description" rows="3" placeholder="Descripción"></textarea>
       </div>
     </div>
 

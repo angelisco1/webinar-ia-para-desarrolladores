@@ -64,3 +64,15 @@ test('tiene un h1 y un enlace "Volver a platos" con nombre accesible', async ({ 
   await expect(page.getByRole('heading', { level: 1, name: 'Nuevo plato' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Volver a platos' })).toBeVisible();
 });
+
+test('nombre, precio y descripción tienen label, obligatoriedad y sin tabindex', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const name = page.getByLabel('Nombre del plato');
+  await expect(name).toHaveAttribute('aria-required', 'true');
+  const price = page.getByLabel('Precio (€)');
+  await expect(price).toHaveAttribute('inputmode', 'decimal');
+  await expect(price).toHaveAttribute('aria-required', 'true');
+  await expect(page.getByLabel('Descripción')).not.toHaveAttribute('tabindex', /.*/);
+  await expect(page.getByText('* obligatorio')).toBeVisible();
+  await expect(page.locator('form')).toHaveAttribute('novalidate', '');
+});
