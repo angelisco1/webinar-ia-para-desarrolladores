@@ -1,10 +1,13 @@
-import { AfterViewInit, Directive, ElementRef, inject } from '@angular/core'
+import { AfterViewInit, Directive, ElementRef, Input, inject } from '@angular/core'
 
-@Directive({ selector: '[appAutofocus]', standalone: false })
+// Uso: `appAutofocus` (siempre) o `[appAutofocus]="condicion"`
+@Directive({ selector: '[appAutofocus]' })
 export class AutofocusDirective implements AfterViewInit {
   private el = inject<ElementRef<HTMLElement>>(ElementRef)
 
+  @Input() appAutofocus: boolean | '' = ''
+
   ngAfterViewInit(): void {
-    this.el.nativeElement.focus()
+    if (this.appAutofocus !== false) this.el.nativeElement.focus()
   }
 }

@@ -24,6 +24,9 @@ import { IngredientListComponent } from './components/ingredient-list/ingredient
 import { IngredientFormComponent } from './components/ingredient-form/ingredient-form.component'
 import { EmployeeListComponent } from './components/employee-list/employee-list.component'
 import { EmployeeFormComponent } from './components/employee-form/employee-form.component'
+import { CategoryLabelPipe } from './shared/category-label.pipe'
+import { PriceFormatPipe } from './shared/price-format.pipe'
+import { AutofocusDirective } from './shared/autofocus.directive'
 import { DishIngredientsEditorComponent } from './components/dish-form/dish-ingredients-editor/dish-ingredients-editor.component'
 
 @NgModule({
@@ -41,12 +44,15 @@ import { DishIngredientsEditorComponent } from './components/dish-form/dish-ingr
     IngredientFormComponent,
     EmployeeListComponent,
     EmployeeFormComponent,
-    DishIngredientsEditorComponent
+    DishIngredientsEditorComponent,
+    CategoryLabelPipe,
+    PriceFormatPipe
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
+    AutofocusDirective,
     AppRoutingModule,
     LucideAngularModule.pick({
       LayoutDashboard, Users, Utensils, Package, LogOut, Plus,

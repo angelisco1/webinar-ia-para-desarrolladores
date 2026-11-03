@@ -13,7 +13,7 @@
   <form class="card form-card">
     <div class="form-grid">
       <div class="form-group">
-        <input id="dish-name" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" name="name" placeholder="Nombre del plato *" autocomplete="off" />
+        <input id="dish-name" [appAutofocus]="!isEditing" type="text" class="form-control" [ngClass]="{'invalid': errors.name}" [(ngModel)]="dish.name" name="name" placeholder="Nombre del plato *" autocomplete="off" />
       </div>
 
       <div class="form-group">
@@ -24,7 +24,7 @@
         <span class="label">Categoría</span>
         <div class="chips">
           <div *ngFor="let c of categories" class="chip" [ngClass]="{'selected': dish.category == c}" (click)="selectCategory(c)">
-            {{ dataService.getCategoryLabel(c) }}
+            {{ c | categoryLabel }}
           </div>
         </div>
       </div>
@@ -41,29 +41,7 @@
       </div>
     </div>
 
-    <div class="ingredients-section">
-      <b>Ingredientes del plato</b>
-
-      <div class="ingredient-chips" *ngIf="dish.ingredients.length > 0">
-        <div class="ingredient-chip" *ngFor="let ing of dish.ingredients">
-          <span>{{ getIngredientName(ing.ingredientId) }} — {{ ing.quantity }}</span>
-          <span class="chip-remove" (click)="removeIngredient(ing.ingredientId)">
-            <lucide-icon name="trash-2" [size]="12"></lucide-icon>
-          </span>
-        </div>
-      </div>
-
-      <div class="add-ingredient-row">
-        <select class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId">
-          <option value="">--</option>
-          <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
-        </select>
-        <input type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" />
-        <div class="btn btn-secondary btn-sm" (click)="addIngredient()">
-          <lucide-icon name="plus" [size]="14"></lucide-icon>
-        </div>
-      </div>
-    </div>
+    <app-dish-ingredients-editor [all]="allIngredients" [selected]="dish.ingredients" (selectedChange)="dish.ingredients = $event"></app-dish-ingredients-editor>
 
     <div class="form-actions">
       <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="btn btn-secondary">Cancelar</a>
