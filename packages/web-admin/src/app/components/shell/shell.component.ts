@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, inject } from '@angular/core'
 import { Router, NavigationEnd } from '@angular/router'
-import { DataService } from '../../data.service'
+import { RestaurantStore } from '../../store/restaurant.store'
 
 @Component({
   selector: 'app-shell',
@@ -13,11 +13,18 @@ export class ShellComponent implements OnInit {
   static instance: ShellComponent
 
   user: any
-  restaurants: any[] = []
   expandedRestaurantId: any = null
-  loading = false
+  private store = inject(RestaurantStore)
 
-  constructor(public dataService: DataService, public router: Router) {
+  get restaurants() {
+    return this.store.restaurants()
+  }
+
+  get loading() {
+    return this.store.loading()
+  }
+
+  constructor(public router: Router) {
     ShellComponent.instance = this
   }
 
@@ -51,12 +58,7 @@ export class ShellComponent implements OnInit {
   }
 
   loadRestaurants() {
-    this.loading = true
-    this.dataService.http.get('/api/v1/restaurants').subscribe((data: any) => {
-      this.restaurants = data
-      this.dataService.restaurants = data
-      this.loading = false
-    })
+    this.store.load()
   }
 
   toggleRestaurant(id) {

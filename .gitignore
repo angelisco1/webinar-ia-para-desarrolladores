@@ -9,3 +9,12 @@ dist/
 # SQLite: se regenera con `npm run seed`
 *.db
 *.db-journal
+
+# Worktrees de implement-plan
+.claude/worktrees/
+
+# Playwright / E2E
+test-results/
+playwright-report/
+e2e-videos/
+e2e/.auth/

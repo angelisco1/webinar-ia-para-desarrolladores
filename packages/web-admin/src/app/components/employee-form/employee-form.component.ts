@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core'
-import { Router } from '@angular/router'
-import { DataService } from '../../data.service'
+import { Component, OnInit, inject } from '@angular/core'
+import { ActivatedRoute, Router } from '@angular/router'
+import { EmployeeApi } from '../../api/employee.api'
+import { EmployeeStore } from '../../store/employee.store'
 
 @Component({
   selector: 'app-employee-form',
@@ -24,10 +25,13 @@ export class EmployeeFormComponent implements OnInit {
     restaurantId: null
   }
 
-  constructor(private router: Router, private dataService: DataService) {}
+  private route = inject(ActivatedRoute)
+  private router = inject(Router)
+  private api = inject(EmployeeApi)
+  private store = inject(EmployeeStore)
 
   ngOnInit() {
-    this.restaurantId = this.dataService.currentRestaurantId || this.dataService.getRestaurantIdFromUrl()
+    this.restaurantId = this.route.snapshot.paramMap.get('restaurantId')
     this.employee.restaurantId = this.restaurantId
   }
 
@@ -46,9 +50,9 @@ export class EmployeeFormComponent implements OnInit {
       return
     }
     this.loading = true
-    this.dataService.createEmployee(this.employee).subscribe(res => {
+    this.api.create(this.employee).subscribe(res => {
       this.loading = false
-      this.dataService.employees.push(res)
+      this.store.add(res)
       this.router.navigate(['/restaurants/' + this.restaurantId + '/employees'])
     }, err => {
       this.loading = false

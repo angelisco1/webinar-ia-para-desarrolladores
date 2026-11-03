@@ -1,0 +1,65 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Qué es
+
+Resttek: plataforma de gestión de restaurantes. Monorepo con npm workspaces (`packages/*`, Node 22+): una API (`api`, Express 5 + TypeScript + SQLite) y tres apps Angular 21 (`web-admin` :4200, `web-empleados` :4201, `web-clientes` :4202) más la librería `web-shared` (auth, interceptors, componentes comunes). La documentación (en español) está en `docs/arquitectura/` y `docs/dominio/` (glosario, modelo de datos).
+
+## Comandos
+
+Desde la raíz (tras `npm install`):
+
+```bash
+npm run dev:api        # API en :3000 con tsx watch (healthcheck: /health, sin prefijo /api/v1)
+npm run dev:admin      # también dev:empleados, dev:clientes (ng serve con proxy /api -> :3000)
+npm run seed           # datos de prueba (idempotente, INSERT OR IGNORE); la contraseña de cada usuario es su email (ej. admin@resttek.com)
+npm test               # tests de la API (vitest run)
+```
+
+Un solo test / modo watch (desde `packages/api`):
+
+```bash
+npx vitest run src/services/order.service.test.ts
+npm run test:watch
+```
+
+`web-admin` tiene tests unitarios (Angular `unit-test` + vitest/jsdom, specs junto al código): `npm test -w @resttek/web-admin` (o `npm run test:admin` desde la raíz) y tests E2E (abajo). Los demás frontends solo tienen `ng build` (`npm run build -w @resttek/web-admin`); no hay lint configurado. Los cambios en `web-shared` no se recargan en caliente: hay que reiniciar el dev server del frontend.
+
+Tests E2E y accesibilidad (Playwright + axe, desde la raíz; la primera vez `npx playwright install chromium`):
+
+```bash
+npm run test:e2e       # arranca API (:3000) y web-admin (:4200) si no están en marcha, siembra la BD y ejecuta e2e/
+npm run e2e:video      # recorrido por teclado de dishes/new con vídeo -> e2e-videos/dish-form-teclado.webm
+```
+
+`e2e/`: `auth.setup.ts` (login y `e2e/.auth/admin.json`), `helpers/` (`axe.ts`, `restaurant.ts`) y los specs (`color-contrast`, `non-text-contrast`, `dish-form-a11y`, `dish-form-keyboard-video`). `test-results/`, `playwright-report/`, `e2e-videos/` y `e2e/.auth/` están en `.gitignore`: los vídeos no se commitean. Los E2E escriben en la BD real `packages/api/resttek.db` (workers: 1); los platos que crean (`Plato E2E …`) se borran por API en `afterEach`.
+
+## Arquitectura de la API (`packages/api`)
+
+Conviven **dos estilos**; identifica cuál aplica antes de tocar código:
+
+- **Hexagonal + DDD**: solo el contexto `src/contexts/employee/` (domain → application → infrastructure/http). `Employee` es la única entidad real (constructor privado + `create()`); casos de uso con `execute()`. `contexts/shared/` contiene `Email`, middlewares y `errorHandler`.
+- **Por capas**: `restaurant`, `dish`, `ingredient`, `order` usan carpetas transversales `models/`, `repositories/`, `services/`, `controllers/`, `routes/`. Los modelos son interfaces planas; las validaciones viven en los servicios y en funciones `normalizeX()` de `models/`. La composición de dependencias (repo → service → controller) se hace dentro de cada fichero de rutas (en `employee`, en `infrastructure/http/dependencies.ts`).
+
+Detalles que no se deducen leyendo un solo fichero:
+
+- Imports ESM con extensión `.js` y path aliases (`@models/*`, `@services/*`, `@employee/*`, `@shared/*`, `@config/*`, `@errors/*`...) definidos en `tsconfig.json`; en tests los resuelve `vite-tsconfig-paths`.
+- Routers bajo `/restaurants/:restaurantId/...` necesitan `Router({ mergeParams: true })`.
+- Errores: `AppError` → `errors/DomainErrors.ts`. El `errorHandler` decide el HTTP por **nombre de clase** (404 para los `*NotFoundError` listados, 401 `InvalidCredentialsError`, resto 400). Los errores nuevos que deban ser 404 hay que añadirlos a esa lista. `OrderController` es la excepción: no usa `next(error)`, hace su propio try/catch.
+- Auth: JWT, middlewares `authenticate` / `authorize(roles)` (responden directamente, sin `errorHandler`). Las rutas de pedidos no aplican `authorize`.
+- Al crear un pedido, el servicio expande cantidades (quantity 3 → 3 filas `order_items`) para seguir el estado de cada unidad.
+- BD: `config/database.ts` exporta una instancia única `dbConfig`; las tablas se crean en `initialize()` con `CREATE TABLE IF NOT EXISTS` (no hay sistema de migraciones). Archivo `packages/api/resttek.db` (git-ignorado); con `NODE_ENV=test` usa `:memory:`. SQL usa alias `snake_case as camelCase`.
+- Tests: vitest unitarios junto al código, con dobles en `**/mocks/`. No hay tests HTTP (supertest está instalado pero sin usar).
+
+## Arquitectura del frontend
+
+Angular 21: standalone components, signals, zoneless (sin zone.js), guards/interceptors funcionales. Estado en stores (`providedIn: 'root'` con signals privadas expuestas como readonly) que envuelven HTTP con `firstValueFrom` en `web-admin` y `web-empleados`; `web-clientes` consume Observables con `.subscribe()` directamente. Estructura: `web-admin`/`web-empleados` por feature (`models/ pages/ services/ store/`); `web-clientes` centraliza modelos/servicios/store en `core/`. `web-admin` (NgModule, componentes `standalone: false`, zone.js) se organiza en `models/` (interfaces y `DISH_CATEGORIES`), `api/` (clases solo-HTTP por recurso que usan el token `API_URL`, sin estado), `store/` (stores con signals sobre las APIs) y `shared/` (pipes `categoryLabel`/`priceFormat`, `DialogService`, `extractApiError`, directiva `appAutofocus`); ya no existe `DataService`. Los componentes obtienen el `restaurantId` de `ActivatedRoute` (no de `window.location`). Los componentes de ingredientes y el shell aún no están migrados del todo (ver `TODOS/solid.md`). Ver `docs/arquitectura/arquitectura-frontend.md`.
+
+## Otros
+
+`scripts/seed-issues.sh` crea issues de GitHub desde `scripts/issues.json` (requiere `gh` y `jq`; ver `scripts/README.md`).
+
+## Accesibilidad (web-admin)
+
+Convenciones aplicadas en `dish-form` y a seguir en el resto de formularios: `<label for>` visible en cada campo (el placeholder no es etiqueta), `novalidate` + `aria-required` + leyenda «* obligatorio», errores por campo con texto e icono (`aria-invalid` + `aria-describedby`) y resumen en un contenedor `role="alert"` que no se autodescarta; grupos con `<fieldset>/<legend>` y botones `aria-pressed`; booleanos como `role="switch"` con texto Sí/No; botones reales (`type="button"`/`submit`), nunca `div (click)`; objetivos ≥ 24×24 px. Colores: usar `--text-muted`/`--text-secondary` para texto (≥ 4,5:1), `--border-control` para bordes de controles (≥ 3:1) y `:focus-visible` global (no añadir `outline: none`). `styles.css` y `web-shared/.../base.css` deben editarse a la vez.
