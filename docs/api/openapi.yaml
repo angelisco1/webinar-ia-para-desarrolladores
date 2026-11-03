@@ -189,7 +189,14 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: Número de mesa ya usado por otra mesa del restaurante (`DuplicateTableNumberError`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: DuplicateTableNumberError
+                message: Ya existe una mesa con ese número
     delete:
       tags: [Tables]
       summary: Borra una mesa (admin); no se puede borrar si está `ocupada`
@@ -283,6 +290,51 @@ paths:
               example:
                 error: TableNotAvailableError
                 message: La mesa no está disponible
+  /orders/active:
+    get:
+      tags: [Orders]
+      summary: Pedidos activos del restaurante (existente, documentado para web-empleados)
+      description: Ya existe; devuelve `tableId` en cada pedido y excluye los totalmente entregados. Solo `authenticate`, sin `authorize`.
+      operationId: listActiveOrders
+      parameters:
+        - name: restaurantId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pedidos activos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+                  required: [id, restaurantId, tableId]
+                  properties:
+                    id:
+                      type: string
+                    restaurantId:
+                      type: string
+                    tableId:
+                      type: string
+                      nullable: true
+              example:
+                - id: order-1
+                  restaurantId: rest-1
+                  tableId: 0b1f6c2e-7a3d-4c55-9d1e-2f3a4b5c6d7e
+        '400':
+          description: Falta `restaurantId`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimpleError'
+              example:
+                error: restaurantId requerido
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /orders:
     post:
       tags: [Orders]
@@ -318,14 +370,13 @@ paths:
                 restaurantId: rest-1
                 tableId: 0b1f6c2e-7a3d-4c55-9d1e-2f3a4b5c6d7e
         '400':
-          description: Datos inválidos o `tableId` inexistente / de otro restaurante
+          description: Datos inválidos o `tableId` inexistente / de otro restaurante (cuerpo `{ error: <mensaje> }`, sin `message`)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/SimpleError'
               example:
-                error: TableNotFoundError
-                message: Mesa no encontrada
+                error: Mesa no encontrada
         '401':
           $ref: '#/components/responses/Unauthorized'
 components:
@@ -378,6 +429,7 @@ components:
           type: string
           format: date-time
     TableInput:
+      description: En POST, `status` es `libre` si se omite. En PUT, se conserva el estado actual si se omite.
       type: object
       required: [number, capacity]
       properties:
@@ -421,6 +473,13 @@ components:
               notes:
                 type: string
                 nullable: true
+    SimpleError:
+      description: Forma de error de los middlewares de auth y de `OrderController` (solo `error`, con el mensaje)
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
     Error:
       type: object
       required: [error, message]
@@ -440,23 +499,21 @@ components:
             error: InvalidTableCapacityError
             message: La capacidad debe ser un entero mayor o igual que 1
     Unauthorized:
-      description: Token ausente o inválido
+      description: Token ausente o inválido (responde el middleware `authenticate`, solo `error`)
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/SimpleError'
           example:
-            error: Unauthorized
-            message: Token requerido
+            error: 'Unauthorized: token requerido'
     Forbidden:
-      description: Rol sin permiso
+      description: Rol sin permiso (responde el middleware `authorize`, solo `error`)
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/SimpleError'
           example:
-            error: Forbidden
-            message: No tienes permisos
+            error: 'Forbidden: Insufficient permissions'
     NotFound:
       description: Mesa no encontrada (`TableNotFoundError`)
       content:
@@ -467,11 +524,19 @@ components:
             error: TableNotFoundError
             message: Mesa no encontrada
     Conflict:
-      description: Conflicto (`DuplicateTableNumberError`, `TableInUseError`)
+      description: Conflicto (`DuplicateTableNumberError` en POST/PUT, `TableInUseError` en DELETE)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-          example:
-            error: DuplicateTableNumberError
-            message: Ya existe una mesa con ese número
+          examples:
+            duplicateNumber:
+              summary: Número de mesa repetido en el restaurante
+              value:
+                error: DuplicateTableNumberError
+                message: Ya existe una mesa con ese número
+            tableInUse:
+              summary: Borrado de una mesa ocupada
+              value:
+                error: TableInUseError
+                message: No se puede borrar una mesa ocupada
