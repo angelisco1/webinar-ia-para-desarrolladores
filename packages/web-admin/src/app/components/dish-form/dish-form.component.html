@@ -34,11 +34,12 @@
         </div>
       </fieldset>
 
-      <div class="form-group">
-        <span class="label">Disponible</span>
-        <div class="toggle" [ngClass]="{'on': dish.available}" (click)="toggleAvailable()">
-          <div class="toggle-dot"></div>
-        </div>
+      <div class="form-group" role="group" aria-labelledby="dish-available-label">
+        <span class="label" id="dish-available-label">Disponible</span>
+        <button type="button" role="switch" class="toggle" [ngClass]="{'on': dish.available}" [attr.aria-checked]="dish.available" aria-labelledby="dish-available-label" (click)="toggleAvailable()">
+          <span class="toggle-dot" aria-hidden="true"></span>
+          <span class="toggle-text">{{ dish.available ? 'Sí' : 'No' }}</span>
+        </button>
       </div>
 
       <div class="form-group form-full">

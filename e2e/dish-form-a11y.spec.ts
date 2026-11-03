@@ -93,3 +93,18 @@ test('la categoría es un grupo de botones aria-pressed con indicador no cromát
   await expect(principal).toHaveAttribute('aria-pressed', 'false');
   await expect(postre.locator('svg.chip-check')).toBeVisible();
 });
+
+test('Disponible es un switch con texto Sí/No y objetivo >= 24px', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const sw = page.getByRole('switch', { name: 'Disponible' });
+  await expect(sw).toHaveAttribute('aria-checked', 'true');
+  await expect(sw).toContainText('Sí');
+  const box = await sw.boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(24);
+  expect(box!.width).toBeGreaterThanOrEqual(24);
+
+  await sw.focus();
+  await page.keyboard.press('Space');
+  await expect(sw).toHaveAttribute('aria-checked', 'false');
+  await expect(sw).toContainText('No');
+});
