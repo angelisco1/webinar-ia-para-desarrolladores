@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { runAxe } from './helpers/axe';
 import { getFirstDishId, getFirstRestaurantId } from './helpers/restaurant';
 
 let restaurantId: string;
@@ -184,5 +185,24 @@ test.describe('foco inicial', () => {
     await expect(page.locator('#dish-name')).toBeVisible();
     await page.waitForTimeout(600); // el foco forzado actual se aplica a los 300 ms
     expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
+  });
+});
+
+test.describe('axe WCAG 2.2 AA completo en dishes/new', () => {
+  const tags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+  const summary = (r: { violations: { id: string; nodes: { target: unknown[] }[] }[] }) =>
+    r.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.target.join(' ')) }));
+
+  test('estado inicial', async ({ page }) => {
+    await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+    await page.waitForLoadState('networkidle');
+    expect(summary(await runAxe(page, { tags }))).toEqual([]);
+  });
+
+  test('con errores visibles', async ({ page }) => {
+    await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+    await page.locator('#dish-name').press('Enter');
+    await expect(page.getByRole('alert').filter({ hasText: 'Revisa los campos' })).toBeVisible();
+    expect(summary(await runAxe(page, { tags }))).toEqual([]);
   });
 });
