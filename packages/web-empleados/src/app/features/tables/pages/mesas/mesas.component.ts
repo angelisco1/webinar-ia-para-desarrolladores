@@ -1,8 +1,10 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core'
+import { Component, computed, inject, OnInit, OnDestroy } from '@angular/core'
 import { AuthStore } from '@resttek/web-shared'
 import { TableStore } from '../../store/table.store'
 import { OrderStore } from '../../../orders/store/order.store'
+import { Order } from '../../../orders/models/order.model'
 import { TableStatus } from '../../models/table.model'
+import { groupOrdersByTable } from '../../utils/group-orders-by-table'
 
 @Component({
   selector: 'app-mesas',
@@ -16,6 +18,12 @@ export class MesasComponent implements OnInit, OnDestroy {
   readonly orderStore = inject(OrderStore)
 
   readonly statuses: TableStatus[] = ['libre', 'ocupada', 'reservada']
+
+  readonly ordersByTable = computed(() => groupOrdersByTable(this.orderStore.orders()))
+
+  ordersFor(tableId: string): Order[] {
+    return this.ordersByTable()[tableId] ?? []
+  }
 
   private get restaurantId(): string | undefined {
     return this.authStore.user()?.restaurantId

@@ -79,4 +79,33 @@ describe('MesasComponent', () => {
     expect(tableStore.startPolling).not.toHaveBeenCalled()
     expect(orderStore.startPolling).not.toHaveBeenCalled()
   })
+
+  describe('pedidos de las mesas ocupadas', () => {
+    const order = (id: string, tableId: string | null) => ({
+      id, restaurantId: 'r1', tableId, clientId: null, createdAt: '2026-11-03T10:00:00.000Z',
+      items: [
+        { id: id + 'i1', dishId: 'd1', quantity: 1, notes: 'sin sal', status: 'preparando', dishName: 'Paella' },
+        { id: id + 'i2', dishId: 'd2', quantity: 1, notes: null, status: 'listo', dishName: 'Agua' },
+      ],
+    })
+
+    it('una mesa ocupada lista los ítems de sus pedidos con nombre, notas y estado', () => {
+      setup()
+      orderStore.orders.set([order('o1', 't2')])
+      fixture.detectChanges()
+      const text = el().querySelectorAll('.table-card')[1].textContent
+      expect(text).toContain('Paella')
+      expect(text).toContain('sin sal')
+      expect(text).toContain('Agua')
+      expect(el().querySelectorAll('.table-card')[1].querySelector('.badge-preparando')).not.toBeNull()
+      expect(el().querySelectorAll('.table-card')[1].querySelector('.badge-listo')).not.toBeNull()
+    })
+
+    it('una mesa libre no muestra pedidos', () => {
+      setup()
+      orderStore.orders.set([order('o1', 't1')])
+      fixture.detectChanges()
+      expect(el().querySelectorAll('.table-card')[0].textContent).not.toContain('Paella')
+    })
+  })
 })
