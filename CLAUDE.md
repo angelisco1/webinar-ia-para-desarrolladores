@@ -24,7 +24,7 @@ npx vitest run src/services/order.service.test.ts
 npm run test:watch
 ```
 
-`web-admin` tiene tests unitarios (Angular `unit-test` + vitest/jsdom, specs junto al código): `npm test -w @resttek/web-admin` (o `npm run test:admin` desde la raíz) y tests E2E (abajo). Los demás frontends solo tienen `ng build` (`npm run build -w @resttek/web-admin`); no hay lint configurado. Los cambios en `web-shared` no se recargan en caliente: hay que reiniciar el dev server del frontend.
+Los tres frontends tienen tests unitarios (Angular `unit-test` + vitest/jsdom, specs junto al código): `npm test -w @resttek/web-admin` (o `npm run test:admin` desde la raíz); `web-clientes` y `web-empleados` se ejecutan con `npx ng test --watch=false` desde su carpeta. `web-admin` además tiene tests E2E (abajo). Build: `npm run build -w @resttek/web-admin`; no hay lint configurado. El contrato de la API de mesas está en `docs/api/openapi.yaml`. Los cambios en `web-shared` no se recargan en caliente: hay que reiniciar el dev server del frontend.
 
 Tests E2E y accesibilidad (Playwright + axe, desde la raíz; la primera vez `npx playwright install chromium`):
 
