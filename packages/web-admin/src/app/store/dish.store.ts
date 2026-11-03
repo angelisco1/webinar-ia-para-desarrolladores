@@ -44,4 +44,9 @@ export class DishStore {
     const updated = await firstValueFrom(this.api.update(restaurantId, dish.id, { ...toDishDto(dish), available }))
     this._dishes.update(list => list.map(d => (d.id == dish.id ? { ...d, ...updated } : d)))
   }
+
+  async remove(restaurantId: string, id: string): Promise<void> {
+    await firstValueFrom(this.api.remove(restaurantId, id))
+    this._dishes.update(list => list.filter(d => d.id != id))
+  }
 }

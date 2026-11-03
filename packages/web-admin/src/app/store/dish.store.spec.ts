@@ -71,4 +71,20 @@ describe('DishStore', () => {
       expect(original.available).toBe(true)
     })
   })
+
+  describe('remove', () => {
+    it('quita el plato de la lista', async () => {
+      await store.load('r1')
+      await store.remove('r1', 'd1')
+      expect(api.remove).toHaveBeenCalledWith('r1', 'd1')
+      expect(store.dishes()).toEqual([])
+    })
+
+    it('si la API falla no cambia la lista y rechaza', async () => {
+      await store.load('r1')
+      api.remove.mockReturnValue(throwError(() => new Error('x')))
+      await expect(store.remove('r1', 'd1')).rejects.toThrow()
+      expect(store.dishes()).toEqual([dish()])
+    })
+  })
 })
