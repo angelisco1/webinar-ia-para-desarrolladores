@@ -1,6 +1,8 @@
 import { Component, inject, signal } from '@angular/core'
-import { ActivatedRoute } from '@angular/router'
+import { HttpErrorResponse } from '@angular/common/http'
+import { ActivatedRoute, Router } from '@angular/router'
 import { TableService } from '../../core/services/table.service'
+import { TableSessionStore } from '../../core/store/table-session.store'
 import { Table } from '../../core/models/table.model'
 
 @Component({
@@ -46,7 +48,7 @@ import { Table } from '../../core/models/table.model'
         }
       }
 
-      <button class="btn btn-primary continue" [disabled]="!selected() || loading()">Continuar</button>
+      <button class="btn btn-primary continue" [disabled]="!selected() || loading()" (click)="continue()">Continuar</button>
     </div>
   `,
   styles: [`
@@ -63,6 +65,8 @@ import { Table } from '../../core/models/table.model'
 export class TableSelectionComponent {
   private readonly tableService = inject(TableService)
   private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
+  private readonly session = inject(TableSessionStore)
   private readonly restaurantId = this.route.snapshot.paramMap.get('id') ?? ''
 
   readonly guests = signal('')
@@ -93,9 +97,32 @@ export class TableSelectionComponent {
     this.selected.set(table)
   }
 
-  private load(guests: number): void {
+  continue(): void {
+    const table = this.selected()
+    if (!table || this.loading()) return
+
     this.loading.set(true)
     this.error.set(null)
+    this.tableService.occupy(this.restaurantId, table.id).subscribe({
+      next: (occupied) => {
+        this.session.select(this.restaurantId, occupied)
+        this.loading.set(false)
+        this.router.navigate(['/restaurants', this.restaurantId])
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false)
+        if (err.status === 409) {
+          this.load(this.searchedGuests(), 'Esa mesa acaba de ser ocupada, elige otra')
+        } else {
+          this.error.set('Error al ocupar la mesa. Inténtalo de nuevo.')
+        }
+      }
+    })
+  }
+
+  private load(guests: number, notice: string | null = null): void {
+    this.loading.set(true)
+    this.error.set(notice)
     this.selected.set(null)
     this.tableService.getAvailable(this.restaurantId, guests).subscribe({
       next: (tables) => {
