@@ -408,9 +408,17 @@ El sistema de diseño es **dark mode** e incluye:
 >
 > En la práctica hay **cuatro copias del design system** y el fichero de `web-shared` es código muerto. Al tocar un estilo común hay que replicarlo en las tres apps, o se desincronizan.
 
-## Pruebas E2E y accesibilidad
+## Gestión de mesas
 
-Los frontends no tienen tests unitarios; `web-admin` se valida con **Playwright + axe-core** desde la raíz (`e2e/`, `playwright.config.ts`).
+Contrato en `docs/api/openapi.yaml`. Estados de mesa: `libre`, `ocupada`, `reservada`; la liberación es manual.
+
+- **web-admin**: CRUD en `restaurants/:restaurantId/tables[/new|/:id/edit]` (`TableListComponent`, `TableFormComponent`, `TableApi`), con enlace «Mesas» en el menú del restaurante. Un 409 (número duplicado, borrar mesa ocupada) muestra el `message` del API.
+- **web-clientes**: flujo restaurante → `restaurants/:id/mesas` (personas → mesas libres con capacidad suficiente → *Continuar*, que llama a `occupy`) → carta → pedido con `tableId`. `TableService`, `TableSessionStore` y `tableSelectedGuard` (protege la carta). Un 409 en `occupy` avisa y recarga la lista.
+- **web-empleados**: página `/mesas` (camarero y manager; el cocinero no la ve) con `TableStore` (polling 30 s), cambio de estado y pedidos activos de las mesas ocupadas agrupados con `groupOrdersByTable`.
+
+## Pruebas unitarias, E2E y accesibilidad
+
+Los tres frontends tienen tests unitarios (vitest + jsdom, `ng test`). Además, `web-admin` se valida con **Playwright + axe-core** desde la raíz (`e2e/`, `playwright.config.ts`).
 
 - `npm run test:e2e` arranca la API y `web-admin` (reutiliza los que ya estén en marcha), ejecuta `npm run seed` y lanza los specs con Chromium (`workers: 1`, la BD es compartida). Instalar el navegador una vez con `npx playwright install chromium`.
 - `e2e/auth.setup.ts` hace login con `admin@resttek.com` y guarda la sesión en `e2e/.auth/admin.json`.
