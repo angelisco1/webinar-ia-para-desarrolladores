@@ -25,6 +25,7 @@ import { IngredientFormComponent } from './components/ingredient-form/ingredient
 import { EmployeeListComponent } from './components/employee-list/employee-list.component'
 import { EmployeeFormComponent } from './components/employee-form/employee-form.component'
 import { TableListComponent } from './components/table-list/table-list.component'
+import { TableFormComponent } from './components/table-form/table-form.component'
 import { CategoryLabelPipe } from './shared/category-label.pipe'
 import { PriceFormatPipe } from './shared/price-format.pipe'
 import { AutofocusDirective } from './shared/autofocus.directive'
@@ -46,6 +47,7 @@ import { DishIngredientsEditorComponent } from './components/dish-form/dish-ingr
     EmployeeListComponent,
     EmployeeFormComponent,
     TableListComponent,
+    TableFormComponent,
     DishIngredientsEditorComponent,
     CategoryLabelPipe,
     PriceFormatPipe
