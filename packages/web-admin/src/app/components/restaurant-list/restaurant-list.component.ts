@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core'
-import { DataService } from '../../data.service'
+import { Component, OnInit, inject } from '@angular/core'
+import { RestaurantStore } from '../../store/restaurant.store'
 
 @Component({
   selector: 'app-restaurant-list',
@@ -8,10 +8,12 @@ import { DataService } from '../../data.service'
   styleUrls: ['./restaurant-list.component.css']
 })
 export class RestaurantListComponent implements OnInit {
+  private store = inject(RestaurantStore)
 
-  constructor(public dataService: DataService) {}
+  restaurants = this.store.restaurants
+  loading = this.store.loading
 
   ngOnInit() {
-    this.dataService.getRestaurants()
+    this.store.load()
   }
 }
