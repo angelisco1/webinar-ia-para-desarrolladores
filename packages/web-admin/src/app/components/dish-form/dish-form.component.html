@@ -1,10 +1,10 @@
 <div class="fade-in">
   <div class="page-header">
     <div class="header-back">
-      <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="back-link">
-        <lucide-icon name="chevron-left" [size]="18"></lucide-icon>
+      <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="back-link" aria-label="Volver a platos">
+        <lucide-icon name="chevron-left" [size]="18" aria-hidden="true"></lucide-icon>
       </a>
-      <div class="title">{{ isEditing ? 'Editar plato' : 'Nuevo plato' }}</div>
+      <h1 class="title">{{ isEditing ? 'Editar plato' : 'Nuevo plato' }}</h1>
     </div>
   </div>
 

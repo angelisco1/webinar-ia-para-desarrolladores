@@ -58,3 +58,9 @@ test.describe('foco visible (2.4.7)', () => {
     }
   });
 });
+
+test('tiene un h1 y un enlace "Volver a platos" con nombre accesible', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Nuevo plato' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Volver a platos' })).toBeVisible();
+});
