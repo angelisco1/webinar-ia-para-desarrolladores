@@ -10,7 +10,7 @@
 
   <div class="toast-error" *ngIf="error">{{ error }}</div>
 
-  <form class="card form-card" novalidate>
+  <form class="card form-card" (ngSubmit)="save()" novalidate>
     <p class="required-legend">* obligatorio</p>
     <div class="form-grid">
       <div class="form-group">
@@ -63,14 +63,14 @@
       <div class="add-ingredient-row">
         <div class="form-group ingredient-select">
           <label for="dish-ingredient">Ingrediente</label>
-          <select id="dish-ingredient" class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId">
+          <select id="dish-ingredient" class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId" (keydown.enter)="$event.preventDefault(); addIngredient()">
             <option value="">Selecciona un ingrediente</option>
             <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
           </select>
         </div>
         <div class="form-group">
           <label for="dish-ingredient-qty">Cantidad</label>
-          <input id="dish-ingredient-qty" type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" />
+          <input id="dish-ingredient-qty" type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" (keydown.enter)="$event.preventDefault(); addIngredient()" />
         </div>
         <button type="button" class="btn btn-secondary btn-sm add-ingredient-btn" aria-label="Añadir ingrediente" (click)="addIngredient()">
           <lucide-icon name="plus" [size]="14" aria-hidden="true"></lucide-icon>
@@ -80,9 +80,9 @@
 
     <div class="form-actions">
       <a [routerLink]="'/restaurants/' + restaurantId + '/dishes'" class="btn btn-secondary">Cancelar</a>
-      <div class="btn btn-primary" [ngClass]="{'disabled': loading}" (click)="save()">
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
         {{ loading ? 'Guardando...' : 'Guardar' }}
-      </div>
+      </button>
     </div>
   </form>
 </div>

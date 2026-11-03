@@ -47,9 +47,9 @@ test.describe('foco visible (2.4.7)', () => {
     });
   }
 
-  test('nombre y Cancelar muestran un contorno visible con contraste >= 3:1', async ({ page }) => {
+  test('nombre, Cancelar y Guardar muestran un contorno visible con contraste >= 3:1', async ({ page }) => {
     await page.goto(`/restaurants/${restaurantId}/dishes/new`);
-    for (const target of [page.locator('#dish-name'), page.getByRole('link', { name: 'Cancelar' })]) {
+    for (const target of [page.locator('#dish-name'), page.getByRole('link', { name: 'Cancelar' }), page.getByRole('button', { name: 'Guardar' })]) {
       await tabTo(page, target);
       const ring = await focusRing(target);
       expect(ring.style).toBe('solid');
@@ -126,4 +126,21 @@ test('ingredientes: controles etiquetados y botones reales de tamaño suficiente
   await remove.focus();
   await page.keyboard.press('Enter');
   await expect(remove).toHaveCount(0);
+});
+
+test.describe('envío del formulario', () => {
+  test('Guardar es submit y Enter en el nombre vacío valida', async ({ page }) => {
+    await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+    await expect(page.getByRole('button', { name: 'Guardar' })).toHaveAttribute('type', 'submit');
+    await page.locator('#dish-name').press('Enter');
+    await expect(page.locator('.toast-error')).toContainText('Revisa los campos marcados');
+  });
+
+  test('Enter en Cantidad añade el ingrediente y no envía el formulario', async ({ page }) => {
+    await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+    await page.getByLabel('Ingrediente', { exact: true }).selectOption({ index: 1 });
+    await page.getByLabel('Cantidad').press('Enter');
+    await expect(page.getByRole('button', { name: /^Quitar / })).toBeVisible();
+    await expect(page.locator('.toast-error')).toHaveCount(0);
+  });
 });

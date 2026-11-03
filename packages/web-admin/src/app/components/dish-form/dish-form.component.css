@@ -209,7 +209,7 @@ select.form-control {
   font-size: 14px;
 }
 
-.btn.disabled {
+.btn:disabled {
   opacity: 0.5;
   pointer-events: none;
 }
