@@ -9,6 +9,8 @@ export interface TableRepository {
     findByRestaurantAndNumber(restaurantId: string, number: number): Promise<Table | null>
     save(table: Table): Promise<void>
     delete(id: string): Promise<void>
+    findAvailable(restaurantId: string, guests: number): Promise<Table[]>
+    occupyIfFree(restaurantId: string, tableId: string): Promise<boolean>
 }
 
 export class SqliteTableRepository implements TableRepository {
@@ -51,5 +53,20 @@ export class SqliteTableRepository implements TableRepository {
 
     async delete(id: string): Promise<void> {
         await this.db.run('DELETE FROM restaurant_tables WHERE id = ?', [id])
+    }
+
+    async findAvailable(restaurantId: string, guests: number): Promise<Table[]> {
+        return this.db.all<Table>(
+            `SELECT ${TABLE_COLUMNS} FROM restaurant_tables WHERE restaurant_id = ? AND status = 'libre' AND capacity >= ? ORDER BY capacity ASC, number ASC`,
+            [restaurantId, guests]
+        )
+    }
+
+    async occupyIfFree(restaurantId: string, tableId: string): Promise<boolean> {
+        const result = await this.db.run(
+            "UPDATE restaurant_tables SET status = 'ocupada', updated_at = ? WHERE id = ? AND restaurant_id = ? AND status = 'libre'",
+            [new Date().toISOString(), tableId, restaurantId]
+        )
+        return result.changes > 0
     }
 }

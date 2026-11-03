@@ -28,4 +28,18 @@ export class MockTableRepository implements TableRepository {
     async delete(id: string): Promise<void> {
         this.tables.delete(id)
     }
+
+    async findAvailable(restaurantId: string, guests: number): Promise<Table[]> {
+        return Array.from(this.tables.values())
+            .filter(t => t.restaurantId === restaurantId && t.status === 'libre' && t.capacity >= guests)
+            .sort((a, b) => a.capacity - b.capacity || a.number - b.number)
+            .map(t => ({ ...t }))
+    }
+
+    async occupyIfFree(restaurantId: string, tableId: string): Promise<boolean> {
+        const table = this.tables.get(tableId)
+        if (!table || table.restaurantId !== restaurantId || table.status !== 'libre') return false
+        this.tables.set(tableId, { ...table, status: 'ocupada', updatedAt: new Date().toISOString() })
+        return true
+    }
 }

@@ -77,4 +77,33 @@ describe('SqliteTableRepository (Integration)', () => {
         await repo.delete('t1')
         expect(await repo.findById('t1')).toBeNull()
     })
+
+    describe('disponibilidad y ocupación', () => {
+        it('findAvailable devuelve solo libres con capacidad suficiente ordenadas por capacidad y número', async () => {
+            await repo.save(makeTable({ id: 'a', number: 1, capacity: 2 }))
+            await repo.save(makeTable({ id: 'b', number: 2, capacity: 6 }))
+            await repo.save(makeTable({ id: 'c', number: 3, capacity: 4 }))
+            await repo.save(makeTable({ id: 'd', number: 4, capacity: 4, status: 'ocupada' }))
+            await repo.save(makeTable({ id: 'e', number: 5, capacity: 4, status: 'reservada' }))
+            await repo.save(makeTable({ id: 'f', number: 6, capacity: 4, restaurantId: 'r2' }))
+            const available = await repo.findAvailable('r1', 3)
+            expect(available.map(t => t.id)).toEqual(['c', 'b'])
+        })
+
+        it('occupyIfFree devuelve true la primera vez y false la segunda', async () => {
+            await repo.save(makeTable())
+            expect(await repo.occupyIfFree('r1', 't1')).toBe(true)
+            expect(await repo.occupyIfFree('r1', 't1')).toBe(false)
+            expect((await repo.findById('t1'))?.status).toBe('ocupada')
+        })
+
+        it('occupyIfFree no afecta a mesas de otro restaurante ni reservadas', async () => {
+            await repo.save(makeTable({ id: 'x', number: 1 }))
+            await repo.save(makeTable({ id: 'y', number: 2, status: 'reservada' }))
+            expect(await repo.occupyIfFree('r2', 'x')).toBe(false)
+            expect((await repo.findById('x'))?.status).toBe('libre')
+            expect(await repo.occupyIfFree('r1', 'y')).toBe(false)
+            expect((await repo.findById('y'))?.status).toBe('reservada')
+        })
+    })
 })
