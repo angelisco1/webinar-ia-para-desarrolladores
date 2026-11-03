@@ -180,3 +180,27 @@ export class InvalidTableStatusError extends AppError {
     super(message ?? 'Estado de mesa inválido')
   }
 }
+
+export class TableNotFoundError extends AppError {
+  constructor() {
+    super('Mesa no encontrada')
+  }
+}
+
+export class DuplicateTableNumberError extends AppError {
+  constructor() {
+    super('Ya existe una mesa con ese número')
+  }
+}
+
+export class TableNotAvailableError extends AppError {
+  constructor() {
+    super('La mesa no está disponible')
+  }
+}
+
+export class TableInUseError extends AppError {
+  constructor() {
+    super('No se puede borrar una mesa ocupada')
+  }
+}
