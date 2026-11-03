@@ -54,3 +54,59 @@ test('recorrido por teclado: Tab y Shift+Tab por todos los controles', async ({ 
   await pressAndExpectFocus(page, 'Shift+Tab', order[9]);
   await pressAndExpectFocus(page, 'Tab', order[10]);
 });
+
+test('recorrido por teclado: Espacio/Enter, añadir y quitar ingrediente', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const group = page.getByRole('group', { name: 'Categoría' });
+  const principal = group.getByRole('button', { name: 'Principal' });
+  const postre = group.getByRole('button', { name: 'Postre' });
+  const sw = page.getByRole('switch', { name: 'Disponible' });
+
+  // Categoría con Espacio: Tab hasta Postre y Espacio
+  await pressAndExpectFocus(page, 'Tab', page.locator('#dish-price'));
+  await pressAndExpectFocus(page, 'Tab', group.getByRole('button', { name: 'Entrante' }));
+  await pressAndExpectFocus(page, 'Tab', principal);
+  await pressAndExpectFocus(page, 'Tab', postre);
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(400);
+  await expect(postre).toHaveAttribute('aria-pressed', 'true');
+  await expect(principal).toHaveAttribute('aria-pressed', 'false');
+
+  // Disponible con Espacio: Sí -> No -> Sí
+  await pressAndExpectFocus(page, 'Tab', group.getByRole('button', { name: 'Bebida' }));
+  await pressAndExpectFocus(page, 'Tab', sw);
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(400);
+  await expect(sw).toHaveAttribute('aria-checked', 'false');
+  await expect(sw).toContainText('No');
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(400);
+  await expect(sw).toHaveAttribute('aria-checked', 'true');
+  await expect(sw).toContainText('Sí');
+
+  // Añadir ingrediente con teclado: select, cantidad, «+» con Enter
+  await pressAndExpectFocus(page, 'Tab', page.locator('#dish-description'));
+  const select = page.locator('#dish-ingredient');
+  await pressAndExpectFocus(page, 'Tab', select);
+  await select.selectOption({ index: 1 });
+  await page.waitForTimeout(400);
+  const qty = page.locator('#dish-ingredient-qty');
+  await pressAndExpectFocus(page, 'Tab', qty);
+  await qty.fill('2');
+  await page.waitForTimeout(400);
+  const add = page.getByRole('button', { name: 'Añadir ingrediente' });
+  await pressAndExpectFocus(page, 'Tab', add);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(400);
+  const remove = page.getByRole('button', { name: /^Quitar / });
+  await expect(remove).toBeVisible();
+  await expect(page.locator('.ingredient-chip')).toContainText('— 2');
+
+  // Quitar el ingrediente: Shift+Tab hasta «Quitar …» y Enter
+  await pressAndExpectFocus(page, 'Shift+Tab', qty);
+  await pressAndExpectFocus(page, 'Shift+Tab', select);
+  await pressAndExpectFocus(page, 'Shift+Tab', remove);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(400);
+  await expect(remove).toHaveCount(0);
+});
