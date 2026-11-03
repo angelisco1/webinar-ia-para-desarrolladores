@@ -14,6 +14,8 @@ import { IngredientListComponent } from './components/ingredient-list/ingredient
 import { IngredientFormComponent } from './components/ingredient-form/ingredient-form.component'
 import { EmployeeListComponent } from './components/employee-list/employee-list.component'
 import { EmployeeFormComponent } from './components/employee-form/employee-form.component'
+import { TableListComponent } from './components/table-list/table-list.component'
+import { TableFormComponent } from './components/table-form/table-form.component'
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -35,6 +37,9 @@ const routes: Routes = [
       { path: 'restaurants/:restaurantId/ingredients', component: IngredientListComponent },
       { path: 'restaurants/:restaurantId/ingredients/new', component: IngredientFormComponent },
       { path: 'restaurants/:restaurantId/ingredients/:id/edit', component: IngredientFormComponent },
+      { path: 'restaurants/:restaurantId/tables', component: TableListComponent },
+      { path: 'restaurants/:restaurantId/tables/new', component: TableFormComponent },
+      { path: 'restaurants/:restaurantId/tables/:id/edit', component: TableFormComponent },
       { path: 'restaurants/:restaurantId/employees', component: EmployeeListComponent },
       { path: 'restaurants/:restaurantId/employees/new', component: EmployeeFormComponent }
     ]
