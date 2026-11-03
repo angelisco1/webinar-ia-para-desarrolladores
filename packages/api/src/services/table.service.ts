@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import type { Table } from '@models/table.model.js'
 import { normalizeTableStatus, validateTableCapacity, validateTableNumber } from '@models/table.model.js'
 import type { TableRepository } from '@repositories/table.repository.js'
-import { DuplicateTableNumberError, TableNotFoundError } from '@errors/DomainErrors.js'
+import { DuplicateTableNumberError, TableInUseError, TableNotAvailableError, TableNotFoundError } from '@errors/DomainErrors.js'
 
 export interface CreateTableRequest {
     restaurantId: string
@@ -68,6 +68,44 @@ export class TableService {
         }
         await this.tableRepository.save(updated)
         return updated
+    }
+
+    async list(restaurantId: string): Promise<Table[]> {
+        return this.tableRepository.findByRestaurant(restaurantId)
+    }
+
+    async getById(restaurantId: string, tableId: string): Promise<Table> {
+        return this.findOwned(restaurantId, tableId)
+    }
+
+    async delete(restaurantId: string, tableId: string): Promise<void> {
+        const table = await this.findOwned(restaurantId, tableId)
+        if (table.status === 'ocupada') {
+            throw new TableInUseError()
+        }
+        await this.tableRepository.delete(table.id)
+    }
+
+    async changeStatus(restaurantId: string, tableId: string, status: string): Promise<Table> {
+        const normalized = normalizeTableStatus(status)
+        const table = await this.findOwned(restaurantId, tableId)
+        const updated: Table = { ...table, status: normalized, updatedAt: new Date().toISOString() }
+        await this.tableRepository.save(updated)
+        return updated
+    }
+
+    async getAvailable(restaurantId: string, guests: number): Promise<Table[]> {
+        validateTableCapacity(guests)
+        return this.tableRepository.findAvailable(restaurantId, guests)
+    }
+
+    async occupy(restaurantId: string, tableId: string): Promise<Table> {
+        const occupied = await this.tableRepository.occupyIfFree(restaurantId, tableId)
+        if (!occupied) {
+            await this.findOwned(restaurantId, tableId)
+            throw new TableNotAvailableError()
+        }
+        return this.findOwned(restaurantId, tableId)
     }
 
     private async findOwned(restaurantId: string, tableId: string): Promise<Table> {

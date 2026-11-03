@@ -6,7 +6,9 @@ import {
     InvalidTableCapacityError,
     InvalidTableNumberError,
     InvalidTableStatusError,
-    TableNotFoundError
+    TableNotFoundError,
+    TableInUseError,
+    TableNotAvailableError
 } from '@errors/DomainErrors.js'
 
 describe('TableService.create/update', () => {
@@ -69,5 +71,66 @@ describe('TableService.create/update', () => {
         const t = await service.create({ restaurantId: 'r1', number: 1, capacity: 4 })
         const updated = await service.update('r1', t.id, { number: 1, capacity: 4, status: 'reservada' })
         expect(updated.status).toBe('reservada')
+    })
+})
+
+describe('TableService lectura, borrado, estado y ocupación', () => {
+    let repo: MockTableRepository
+    let service: TableService
+
+    beforeEach(() => {
+        repo = new MockTableRepository()
+        service = new TableService(repo)
+    })
+
+    it('list devuelve las mesas del restaurante y getById valida pertenencia', async () => {
+        const t = await service.create({ restaurantId: 'r1', number: 1, capacity: 4 })
+        await service.create({ restaurantId: 'r2', number: 1, capacity: 4 })
+        expect((await service.list('r1')).map(x => x.id)).toEqual([t.id])
+        expect((await service.getById('r1', t.id)).id).toBe(t.id)
+        await expect(service.getById('r2', t.id)).rejects.toThrow(TableNotFoundError)
+        await expect(service.getById('r1', 'nope')).rejects.toThrow(TableNotFoundError)
+    })
+
+    it('delete de mesa ocupada lanza TableInUseError', async () => {
+        const t = await service.create({ restaurantId: 'r1', number: 1, capacity: 4, status: 'ocupada' })
+        await expect(service.delete('r1', t.id)).rejects.toThrow(TableInUseError)
+        expect(await repo.findById(t.id)).not.toBeNull()
+    })
+
+    it('delete de mesa libre la elimina y de inexistente lanza TableNotFoundError', async () => {
+        const t = await service.create({ restaurantId: 'r1', number: 1, capacity: 4 })
+        await service.delete('r1', t.id)
+        expect(await repo.findById(t.id)).toBeNull()
+        await expect(service.delete('r1', t.id)).rejects.toThrow(TableNotFoundError)
+    })
+
+    it('changeStatus valida el estado y lo aplica', async () => {
+        const t = await service.create({ restaurantId: 'r1', number: 1, capacity: 4 })
+        await expect(service.changeStatus('r1', t.id, 'x')).rejects.toThrow(InvalidTableStatusError)
+        const changed = await service.changeStatus('r1', t.id, 'Ocupada')
+        expect(changed.status).toBe('ocupada')
+        expect((await repo.findById(t.id))?.status).toBe('ocupada')
+        await expect(service.changeStatus('r1', 'nope', 'libre')).rejects.toThrow(TableNotFoundError)
+    })
+
+    it('getAvailable valida guests y filtra', async () => {
+        await service.create({ restaurantId: 'r1', number: 1, capacity: 2 })
+        await service.create({ restaurantId: 'r1', number: 2, capacity: 4 })
+        await expect(service.getAvailable('r1', 0)).rejects.toThrow(InvalidTableCapacityError)
+        await expect(service.getAvailable('r1', 1.5)).rejects.toThrow(InvalidTableCapacityError)
+        await expect(service.getAvailable('r1', NaN)).rejects.toThrow(InvalidTableCapacityError)
+        expect((await service.getAvailable('r1', 3)).map(t => t.number)).toEqual([2])
+    })
+
+    it('occupy: libre pasa a ocupada, ocupada o reservada lanza TableNotAvailableError, inexistente TableNotFoundError', async () => {
+        const free = await service.create({ restaurantId: 'r1', number: 1, capacity: 4 })
+        const reserved = await service.create({ restaurantId: 'r1', number: 2, capacity: 4, status: 'reservada' })
+        const occupied = await service.occupy('r1', free.id)
+        expect(occupied.status).toBe('ocupada')
+        await expect(service.occupy('r1', free.id)).rejects.toThrow(TableNotAvailableError)
+        await expect(service.occupy('r1', reserved.id)).rejects.toThrow(TableNotAvailableError)
+        await expect(service.occupy('r1', 'nope')).rejects.toThrow(TableNotFoundError)
+        await expect(service.occupy('r2', free.id)).rejects.toThrow(TableNotFoundError)
     })
 })
