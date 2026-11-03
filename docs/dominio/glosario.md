@@ -16,6 +16,7 @@ Terminología del dominio y conceptos técnicos utilizados en el proyecto Restte
 | **Ingredient** | Ingrediente utilizado en los platos. Tiene nombre, unidad de medida y stock actual. Pertenece a un restaurante. |
 | **DishIngredient** | Relación entre un plato y un ingrediente, con la cantidad necesaria. |
 | **Order** | Pedido realizado por un cliente. Contiene ítems (platos) y está asociado a un restaurante. |
+| **Table** (Mesa) | Mesa de un restaurante. Tiene número (único en el restaurante), descripción opcional, capacidad y estado. Se guarda en `restaurant_tables`. |
 | **OrderItem** | Línea de un pedido: un plato con cantidad, notas opcionales y estado. |
 
 Dos particularidades del modelo que conviene tener presentes:
@@ -34,6 +35,16 @@ Dos particularidades del modelo que conviene tener presentes:
 | **cliente** | Cliente final. Hace pedidos. | web-clientes |
 
 El valor almacenado es `manager`; "gerente" es solo su traducción en la interfaz. La columna **Acceso** describe lo que muestra el menú de cada app, no una restricción real: en `web-empleados` el filtrado por rol es de navegación y las tres vistas son accesibles por URL para cualquier usuario con sesión. Quien decide de verdad es el middleware `authorize()` de la API.
+
+### Estados de Mesa
+
+| Estado | Descripción | Quién lo cambia |
+| --- | --- | --- |
+| **libre** | Mesa disponible. Es el estado inicial. | admin, manager, camarero (la liberación es manual) |
+| **ocupada** | Mesa en uso. Un cliente la ocupa al elegirla; si abandona sin pedir sigue ocupada hasta que un empleado la libere. No se puede borrar. | cliente (`occupy`, solo desde `libre`), admin, manager, camarero |
+| **reservada** | Mesa reservada. Un cliente no puede ocuparla: solo pasa a `ocupada` o `libre` por mano de un empleado. | admin, manager, camarero |
+
+El rol `cocinero` no tiene acceso a las mesas.
 
 ### Estados de Pedido
 
