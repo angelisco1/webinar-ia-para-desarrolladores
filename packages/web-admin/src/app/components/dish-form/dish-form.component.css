@@ -125,7 +125,7 @@ select.form-control {
 }
 
 .form-control::placeholder {
-  color: #3d4256;
+  color: var(--text-secondary);
 }
 
 .form-control.invalid {
@@ -134,7 +134,7 @@ select.form-control {
 
 .label {
   font-size: 12px;
-  color: #3d4256;
+  color: var(--text-secondary);
 }
 
 .chips {
@@ -187,11 +187,11 @@ select.form-control {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: var(--red);
-  color: #ff9a9a;
+  background: #b91c1c;
+  color: #fff;
   padding: 10px 16px;
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .btn.disabled {
