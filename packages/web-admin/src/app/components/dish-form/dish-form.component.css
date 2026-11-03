@@ -137,17 +137,28 @@ select.form-control {
   gap: 6px;
 }
 
+.category-group {
+  border: none;
+  min-width: 0;
+}
+
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 6px 12px;
+  min-height: 32px;
   border-radius: 20px;
+  border: 1px solid var(--border-control);
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   background: var(--bg-hover);
   cursor: pointer;
 }
 
 .chip.selected {
   color: var(--green-light);
+  border-color: var(--green-light);
 }
 
 .toggle {

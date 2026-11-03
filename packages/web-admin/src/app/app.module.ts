@@ -5,7 +5,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'
 import {
   LucideAngularModule,
   LayoutDashboard, Users, Utensils, Package, LogOut, Plus,
-  Edit, Trash2, ChevronLeft, ChevronRight, Search, Menu, Settings, Store
+  Edit, Trash2, Check, ChevronLeft, ChevronRight, Search, Menu, Settings, Store
 } from 'lucide-angular'
 import { API_URL } from '@resttek/web-shared'
 
@@ -48,7 +48,7 @@ import { EmployeeFormComponent } from './components/employee-form/employee-form.
     AppRoutingModule,
     LucideAngularModule.pick({
       LayoutDashboard, Users, Utensils, Package, LogOut, Plus,
-      Edit, Trash2, ChevronLeft, ChevronRight, Search, Menu, Settings, Store
+      Edit, Trash2, Check, ChevronLeft, ChevronRight, Search, Menu, Settings, Store
     })
   ],
   providers: [

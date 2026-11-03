@@ -76,3 +76,20 @@ test('nombre, precio y descripción tienen label, obligatoriedad y sin tabindex'
   await expect(page.getByText('* obligatorio')).toBeVisible();
   await expect(page.locator('form')).toHaveAttribute('novalidate', '');
 });
+
+test('la categoría es un grupo de botones aria-pressed con indicador no cromático', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const group = page.getByRole('group', { name: 'Categoría' });
+  await expect(group.getByRole('button')).toHaveCount(4);
+  const principal = group.getByRole('button', { name: 'Principal' });
+  const postre = group.getByRole('button', { name: 'Postre' });
+  await expect(principal).toHaveAttribute('aria-pressed', 'true');
+  await expect(principal.locator('svg.chip-check')).toBeVisible();
+  await expect(postre.locator('svg.chip-check')).toHaveCount(0);
+
+  await postre.focus();
+  await page.keyboard.press('Space');
+  await expect(postre).toHaveAttribute('aria-pressed', 'true');
+  await expect(principal).toHaveAttribute('aria-pressed', 'false');
+  await expect(postre.locator('svg.chip-check')).toBeVisible();
+});

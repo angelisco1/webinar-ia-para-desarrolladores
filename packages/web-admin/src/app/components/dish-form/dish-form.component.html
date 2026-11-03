@@ -24,14 +24,15 @@
         <span id="dish-price-hint" class="field-hint">Usa punto decimal (12.5)</span>
       </div>
 
-      <div class="form-group">
-        <span class="label">Categoría</span>
+      <fieldset class="form-group category-group">
+        <legend class="label">Categoría</legend>
         <div class="chips">
-          <div *ngFor="let c of categories" class="chip" [ngClass]="{'selected': dish.category == c}" (click)="selectCategory(c)">
+          <button type="button" *ngFor="let c of categories" class="chip" [ngClass]="{'selected': dish.category == c}" [attr.aria-pressed]="dish.category == c" (click)="selectCategory(c)">
+            <lucide-icon *ngIf="dish.category == c" class="chip-check" name="check" [size]="12" aria-hidden="true"></lucide-icon>
             {{ dataService.getCategoryLabel(c) }}
-          </div>
+          </button>
         </div>
-      </div>
+      </fieldset>
 
       <div class="form-group">
         <span class="label">Disponible</span>
