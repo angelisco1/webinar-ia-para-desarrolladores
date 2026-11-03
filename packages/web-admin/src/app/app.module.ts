@@ -5,7 +5,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'
 import {
   LucideAngularModule,
   LayoutDashboard, Users, Utensils, Package, LogOut, Plus,
-  Edit, Trash2, Check, AlertCircle, X, ChevronLeft, ChevronRight, Search, Menu, Settings, Store
+  Edit, Trash2, Check, AlertCircle, X, ChevronLeft, ChevronRight, Search, Menu, Settings, Store, Armchair
 } from 'lucide-angular'
 import { API_URL } from '@resttek/web-shared'
 
@@ -24,6 +24,7 @@ import { IngredientListComponent } from './components/ingredient-list/ingredient
 import { IngredientFormComponent } from './components/ingredient-form/ingredient-form.component'
 import { EmployeeListComponent } from './components/employee-list/employee-list.component'
 import { EmployeeFormComponent } from './components/employee-form/employee-form.component'
+import { TableListComponent } from './components/table-list/table-list.component'
 import { CategoryLabelPipe } from './shared/category-label.pipe'
 import { PriceFormatPipe } from './shared/price-format.pipe'
 import { AutofocusDirective } from './shared/autofocus.directive'
@@ -44,6 +45,7 @@ import { DishIngredientsEditorComponent } from './components/dish-form/dish-ingr
     IngredientFormComponent,
     EmployeeListComponent,
     EmployeeFormComponent,
+    TableListComponent,
     DishIngredientsEditorComponent,
     CategoryLabelPipe,
     PriceFormatPipe
@@ -56,7 +58,7 @@ import { DishIngredientsEditorComponent } from './components/dish-form/dish-ingr
     AppRoutingModule,
     LucideAngularModule.pick({
       LayoutDashboard, Users, Utensils, Package, LogOut, Plus,
-      Edit, Trash2, Check, AlertCircle, X, ChevronLeft, ChevronRight, Search, Menu, Settings, Store
+      Edit, Trash2, Check, AlertCircle, X, ChevronLeft, ChevronRight, Search, Menu, Settings, Store, Armchair
     })
   ],
   providers: [
