@@ -7,6 +7,7 @@
   --bg-hover: #222839;
   --bg-input: #1e2231;
   --border-color: #2a2f42;
+  --border-control: #6b7390;
   --border-focus: #4ade80;
   --text-primary: #e8eaf0;
   --text-secondary: #8b92a8;
@@ -88,7 +89,7 @@ input, select, textarea {
 .btn-secondary {
   background: transparent;
   color: var(--text-secondary);
-  border-color: var(--border-color);
+  border-color: var(--border-control);
 }
 
 .btn-secondary:hover {
@@ -126,7 +127,7 @@ input, select, textarea {
 .form-control {
   padding: 10px 14px;
   background: var(--bg-input);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   transition: border-color var(--transition), box-shadow var(--transition);
