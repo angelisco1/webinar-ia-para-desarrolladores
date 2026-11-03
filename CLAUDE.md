@@ -24,7 +24,7 @@ npx vitest run src/services/order.service.test.ts
 npm run test:watch
 ```
 
-Los frontends solo tienen `ng build` (`npm run build -w @resttek/web-admin`); no hay tests ni lint configurados. Los cambios en `web-shared` no se recargan en caliente: hay que reiniciar el dev server del frontend.
+`web-admin` tiene tests unitarios (Angular `unit-test` + vitest/jsdom, specs junto al código): `npm test -w @resttek/web-admin` (o `npm run test:admin` desde la raíz). Los demás frontends solo tienen `ng build` (`npm run build -w @resttek/web-admin`); no hay lint configurado. Los cambios en `web-shared` no se recargan en caliente: hay que reiniciar el dev server del frontend.
 
 ## Arquitectura de la API (`packages/api`)
 
@@ -45,7 +45,7 @@ Detalles que no se deducen leyendo un solo fichero:
 
 ## Arquitectura del frontend
 
-Angular 21: standalone components, signals, zoneless (sin zone.js), guards/interceptors funcionales. Estado en stores (`providedIn: 'root'` con signals privadas expuestas como readonly) que envuelven HTTP con `firstValueFrom` en `web-admin` y `web-empleados`; `web-clientes` consume Observables con `.subscribe()` directamente. Estructura: `web-admin`/`web-empleados` por feature (`models/ pages/ services/ store/`); `web-clientes` centraliza modelos/servicios/store en `core/`. Ver `docs/arquitectura/arquitectura-frontend.md`.
+Angular 21: standalone components, signals, zoneless (sin zone.js), guards/interceptors funcionales. Estado en stores (`providedIn: 'root'` con signals privadas expuestas como readonly) que envuelven HTTP con `firstValueFrom` en `web-admin` y `web-empleados`; `web-clientes` consume Observables con `.subscribe()` directamente. Estructura: `web-admin`/`web-empleados` por feature (`models/ pages/ services/ store/`); `web-clientes` centraliza modelos/servicios/store en `core/`. `web-admin` (NgModule, componentes `standalone: false`, zone.js) se organiza en `models/` (interfaces y `DISH_CATEGORIES`), `api/` (clases solo-HTTP por recurso que usan el token `API_URL`, sin estado), `store/` (stores con signals sobre las APIs) y `shared/` (pipes `categoryLabel`/`priceFormat`, `DialogService`, `extractApiError`, directiva `appAutofocus`); ya no existe `DataService`. Los componentes obtienen el `restaurantId` de `ActivatedRoute` (no de `window.location`). Los componentes de ingredientes y el shell aún no están migrados del todo (ver `TODOS/solid.md`). Ver `docs/arquitectura/arquitectura-frontend.md`.
 
 ## Otros
 

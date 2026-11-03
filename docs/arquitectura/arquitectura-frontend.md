@@ -41,6 +41,19 @@ src/app/
         └── store/         → Estado con signals
 ```
 
+> **Nota sobre `web-admin`**: aún es un NgModule (`app.module.ts`, componentes `standalone: false`, con zone.js) y tiene su propia estructura, ya sin `DataService`:
+>
+> ```
+> src/app/
+> ├── models/      → Interfaces (Dish, Restaurant, Ingredient, Employee) y DISH_CATEGORIES (única fuente de categorías)
+> ├── api/         → *Api: solo HTTP por recurso (usan API_URL; create/update separados; sin estado)
+> ├── store/       → *Store: estado con signals sobre las APIs (DishStore, RestaurantStore, EmployeeStore)
+> ├── shared/      → Pipes categoryLabel / priceFormat, DialogService, extractApiError, directiva appAutofocus
+> └── components/  → Componentes; dish-form incluye mapper, validación y funciones puras de ingredientes
+> ```
+>
+> Tiene tests unitarios (`npm test -w @resttek/web-admin`). Pendiente: `IngredientList`/`IngredientForm` (HTTP directo) y `ShellComponent`.
+
 ### `web-clientes`
 
 Es más pequeña y centraliza modelos y servicios en `core/` en vez de repartirlos por feature. Sus features son componentes sueltos, sin subcarpetas:
@@ -100,7 +113,7 @@ export class DishStore {
 
 **Convenciones (`web-admin` / `web-empleados`):**
 
-- El store consume el service (que devuelve `Observable`) y lo convierte con `firstValueFrom`. Los componentes solo hablan con el store.
+- El store consume el service (en `web-admin`, la clase `*Api` de `api/`, solo HTTP) que devuelve `Observable` y lo convierte con `firstValueFrom`. Los componentes solo hablan con el store. En `web-admin` el ejemplo equivalente es `DishStore` con `DishApi` (`load`, `findById`, `save`, `setAvailability`, `remove`).
 - El trío `loading` / `error` / datos se repite en todos.
 - Tras crear o actualizar, el store actualiza la lista en memoria con `.update()` en vez de recargar.
 
