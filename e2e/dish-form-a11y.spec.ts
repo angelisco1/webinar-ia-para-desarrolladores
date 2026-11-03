@@ -51,6 +51,7 @@ test.describe('foco visible (2.4.7)', () => {
     await page.goto(`/restaurants/${restaurantId}/dishes/new`);
     for (const target of [page.locator('#dish-name'), page.getByRole('link', { name: 'Cancelar' }), page.getByRole('button', { name: 'Guardar' })]) {
       await tabTo(page, target);
+      await page.waitForFunction(() => document.getAnimations().length === 0); // .btn anima `all`
       const ring = await focusRing(target);
       expect(ring.style).toBe('solid');
       expect(ring.width).toBeGreaterThanOrEqual(2);
