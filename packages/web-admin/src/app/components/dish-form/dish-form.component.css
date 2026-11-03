@@ -70,11 +70,20 @@ textarea.form-control {
 
 .chip-remove {
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
+  min-width: 24px;
+  min-height: 24px;
   padding: 2px;
   border-radius: 50%;
   transition: all var(--transition);
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-ingredient-btn {
+  min-width: 32px;
+  min-height: 32px;
 }
 
 .chip-remove:hover {
@@ -88,7 +97,7 @@ textarea.form-control {
   align-items: flex-end;
 }
 
-.add-ingredient-row select {
+.ingredient-select {
   flex: 1;
 }
 

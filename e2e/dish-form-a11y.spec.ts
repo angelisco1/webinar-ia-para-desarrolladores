@@ -108,3 +108,22 @@ test('Disponible es un switch con texto Sí/No y objetivo >= 24px', async ({ pag
   await expect(sw).toHaveAttribute('aria-checked', 'false');
   await expect(sw).toContainText('No');
 });
+
+test('ingredientes: controles etiquetados y botones reales de tamaño suficiente', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const select = page.getByLabel('Ingrediente', { exact: true });
+  await expect(select.locator('option').first()).toHaveText('Selecciona un ingrediente');
+  await expect(page.getByLabel('Cantidad')).toBeVisible();
+  await select.selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'Añadir ingrediente' }).click();
+
+  const remove = page.getByRole('button', { name: /^Quitar / });
+  await expect(remove).toBeVisible();
+  const box = await remove.boundingBox();
+  expect(box!.width).toBeGreaterThanOrEqual(24);
+  expect(box!.height).toBeGreaterThanOrEqual(24);
+
+  await remove.focus();
+  await page.keyboard.press('Enter');
+  await expect(remove).toHaveCount(0);
+});

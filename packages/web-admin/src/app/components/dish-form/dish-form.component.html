@@ -54,21 +54,27 @@
       <div class="ingredient-chips" *ngIf="dish.ingredients.length > 0">
         <div class="ingredient-chip" *ngFor="let ing of dish.ingredients">
           <span>{{ getIngredientName(ing.ingredientId) }} — {{ ing.quantity }}</span>
-          <span class="chip-remove" (click)="removeIngredient(ing.ingredientId)">
-            <lucide-icon name="trash-2" [size]="12"></lucide-icon>
-          </span>
+          <button type="button" class="chip-remove" [attr.aria-label]="'Quitar ' + getIngredientName(ing.ingredientId)" (click)="removeIngredient(ing.ingredientId)">
+            <lucide-icon name="trash-2" [size]="14" aria-hidden="true"></lucide-icon>
+          </button>
         </div>
       </div>
 
       <div class="add-ingredient-row">
-        <select class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId">
-          <option value="">--</option>
-          <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
-        </select>
-        <input type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" />
-        <div class="btn btn-secondary btn-sm" (click)="addIngredient()">
-          <lucide-icon name="plus" [size]="14"></lucide-icon>
+        <div class="form-group ingredient-select">
+          <label for="dish-ingredient">Ingrediente</label>
+          <select id="dish-ingredient" class="form-control" [(ngModel)]="newIngredientId" name="newIngredientId">
+            <option value="">Selecciona un ingrediente</option>
+            <option *ngFor="let i of allIngredients" [value]="i.id">{{ i.name }} ({{ i.unit }})</option>
+          </select>
         </div>
+        <div class="form-group">
+          <label for="dish-ingredient-qty">Cantidad</label>
+          <input id="dish-ingredient-qty" type="number" class="form-control qty-input" [(ngModel)]="newIngredientQty" name="newIngredientQty" min="0.1" step="0.1" />
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm add-ingredient-btn" aria-label="Añadir ingrediente" (click)="addIngredient()">
+          <lucide-icon name="plus" [size]="14" aria-hidden="true"></lucide-icon>
+        </button>
       </div>
     </div>
 
