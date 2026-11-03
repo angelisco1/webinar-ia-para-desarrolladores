@@ -198,10 +198,17 @@ select.form-control {
   background: var(--green-medium);
 }
 
-.toast-error {
+.toast-region {
   position: fixed;
   top: 20px;
   right: 20px;
+  z-index: 100;
+}
+
+.toast-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: #b91c1c;
   color: #fff;
   padding: 10px 16px;
@@ -226,4 +233,22 @@ select.form-control {
 
 .required-legend {
   margin-bottom: 12px;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.toast-close {
+  background: transparent;
+  color: #fff;
+  min-width: 24px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

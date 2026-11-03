@@ -97,17 +97,35 @@ export class DishFormComponent implements OnInit {
     return id
   }
 
-  showError(msg) {
+  showError(msg, persistent = false) {
     this.error = msg
-    setTimeout(() => this.error = null, 3000)
+    if (!persistent) setTimeout(() => this.error = null, 10000)
+  }
+
+  validate() {
+    this.errors = {}
+    if (!this.dish.name) this.errors.name = 'Indica el nombre del plato'
+    if (!this.dish.price || isNaN(this.dish.price) || this.dish.price <= 0) this.errors.price = 'Introduce un precio mayor que 0'
+    return Object.keys(this.errors).length
+  }
+
+  validationSummary(count) {
+    return 'Revisa los campos marcados (' + count + (count === 1 ? ' error)' : ' errores)')
+  }
+
+  onFieldChange() {
+    if (!this.error || Object.keys(this.errors).length === 0) return
+    var count = this.validate()
+    this.error = count ? this.validationSummary(count) : null
   }
 
   save() {
-    this.errors = {}
-    if (!this.dish.name) this.errors.name = true
-    if (!this.dish.price || isNaN(this.dish.price) || this.dish.price <= 0) this.errors.price = true
-    if (Object.keys(this.errors).length > 0) {
-      this.showError('Revisa los campos marcados')
+    var count = this.validate()
+    if (count > 0) {
+      // el resumen permanece visible hasta corregir o cerrar (WCAG 2.2.1)
+      this.showError(this.validationSummary(count), true)
+      var first = document.getElementById(this.errors.name ? 'dish-name' : 'dish-price')
+      if (first) first.focus()
       return
     }
 

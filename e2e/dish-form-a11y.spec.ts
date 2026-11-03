@@ -145,3 +145,29 @@ test.describe('envío del formulario', () => {
     await expect(page.locator('.toast-error')).toHaveCount(0);
   });
 });
+
+test('los errores de validación se identifican por campo y se anuncian', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const name = page.locator('#dish-name');
+  const price = page.locator('#dish-price');
+  await name.press('Enter');
+
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  await expect(price).toHaveAttribute('aria-invalid', 'true');
+  const nameErrId = await name.getAttribute('aria-describedby');
+  await expect(page.locator(`#${nameErrId}`)).toHaveText(/Indica el nombre del plato/);
+  const priceDescribedBy = (await price.getAttribute('aria-describedby'))!.split(' ');
+  const priceErr = page.locator(priceDescribedBy.map((id) => `#${id}`).join(','), { hasText: 'Introduce un precio mayor que 0' });
+  await expect(priceErr).toBeVisible();
+
+  const alert = page.getByRole('alert').filter({ hasText: 'Revisa los campos marcados' });
+  await expect(alert).toBeVisible();
+  await expect(name).toBeFocused();
+
+  await page.waitForTimeout(5000); // no se autodescarta (WCAG 2.2.1)
+  await expect(alert).toBeVisible();
+
+  await name.fill('Plato de prueba');
+  await expect(name).not.toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Indica el nombre del plato')).toHaveCount(0);
+});
