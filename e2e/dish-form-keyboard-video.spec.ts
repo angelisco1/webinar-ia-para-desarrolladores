@@ -1,5 +1,5 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
-import { getFirstRestaurantId } from './helpers/restaurant';
+import { deleteDishesByName, getFirstRestaurantId, listDishes } from './helpers/restaurant';
 
 test.use({
   video: { mode: 'on', size: { width: 1280, height: 720 } },
@@ -8,8 +8,15 @@ test.use({
 
 let restaurantId: string;
 
+const dishName = `Plato E2E ${Date.now()}`;
+
 test.beforeEach(async ({ request }) => {
   restaurantId = await getFirstRestaurantId(request);
+});
+
+test.afterEach(async ({ request }) => {
+  await deleteDishesByName(request, restaurantId, dishName);
+  expect((await listDishes(request, restaurantId)).some((d) => d.name === dishName)).toBe(false);
 });
 
 async function expectVisibleFocus(target: Locator) {
@@ -109,4 +116,38 @@ test('recorrido por teclado: Espacio/Enter, añadir y quitar ingrediente', async
   await page.keyboard.press('Enter');
   await page.waitForTimeout(400);
   await expect(remove).toHaveCount(0);
+});
+
+test('recorrido por teclado: errores con Enter vacío y guardado', async ({ page }) => {
+  await page.goto(`/restaurants/${restaurantId}/dishes/new`);
+  const name = page.locator('#dish-name');
+  const price = page.locator('#dish-price');
+
+  // Enter con el formulario vacío (foco en nombre): errores visibles y foco en nombre
+  await expectVisibleFocus(name);
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(800);
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  await expect(price).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Indica el nombre del plato')).toBeVisible();
+  await expect(page.getByText('Introduce un precio mayor que 0')).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'Revisa los campos marcados' })).toBeVisible();
+  await expectVisibleFocus(name);
+
+  // Rellenar por teclado y llegar a Guardar con Tab
+  await page.keyboard.type(dishName, { delay: 40 });
+  await pressAndExpectFocus(page, 'Tab', price);
+  await page.keyboard.press('Control+A');
+  await page.keyboard.type('12.5', { delay: 40 });
+  const save = page.getByRole('button', { name: 'Guardar' });
+  for (let i = 0; i < 20 && !(await save.evaluate((el) => el === document.activeElement)); i++) {
+    await page.keyboard.press('Tab');
+    await page.waitForTimeout(150);
+  }
+  await expectVisibleFocus(save);
+  await page.keyboard.press('Enter');
+
+  await expect(page).toHaveURL(new RegExp(`/restaurants/${restaurantId}/dishes$`));
+  await expect(page.getByText(dishName)).toBeVisible();
+  await page.waitForTimeout(800);
 });

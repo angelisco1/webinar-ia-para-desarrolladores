@@ -23,3 +23,16 @@ export async function getFirstDishId(request: APIRequestContext, restaurantId: s
   const list = Array.isArray(body) ? body : body.data;
   return list[0].id;
 }
+
+export async function listDishes(request: APIRequestContext, restaurantId: string) {
+  const res = await request.get(`${API}/restaurants/${restaurantId}/dishes`, { headers: authHeaders() });
+  const body = await res.json();
+  return (Array.isArray(body) ? body : body.data) as Array<{ id: string; name: string }>;
+}
+
+/** Borra por API los platos cuyo nombre coincide (limpieza de los platos creados por E2E). */
+export async function deleteDishesByName(request: APIRequestContext, restaurantId: string, name: string) {
+  for (const dish of (await listDishes(request, restaurantId)).filter((d) => d.name === name)) {
+    await request.delete(`${API}/restaurants/${restaurantId}/dishes/${dish.id}`, { headers: authHeaders() });
+  }
+}
