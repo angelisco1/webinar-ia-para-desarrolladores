@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { deleteDishesByName, getFirstRestaurantId, listDishes } from './helpers/restaurant';
 
@@ -37,7 +38,7 @@ async function pressAndExpectFocus(page: Page, key: string, target: Locator) {
   await expectVisibleFocus(target);
 }
 
-test('recorrido por teclado: Tab y Shift+Tab por todos los controles', async ({ page }) => {
+async function stepTabOrder(page: Page) {
   await page.goto(`/restaurants/${restaurantId}/dishes/new`);
   const group = page.getByRole('group', { name: 'Categoría' });
   const order: Locator[] = [
@@ -60,9 +61,9 @@ test('recorrido por teclado: Tab y Shift+Tab por todos los controles', async ({ 
   // Shift+Tab hacia atrás una vez (cantidad) y otra vez adelante
   await pressAndExpectFocus(page, 'Shift+Tab', order[9]);
   await pressAndExpectFocus(page, 'Tab', order[10]);
-});
+}
 
-test('recorrido por teclado: Espacio/Enter, añadir y quitar ingrediente', async ({ page }) => {
+async function stepSpaceEnterAndIngredients(page: Page) {
   await page.goto(`/restaurants/${restaurantId}/dishes/new`);
   const group = page.getByRole('group', { name: 'Categoría' });
   const principal = group.getByRole('button', { name: 'Principal' });
@@ -116,9 +117,9 @@ test('recorrido por teclado: Espacio/Enter, añadir y quitar ingrediente', async
   await page.keyboard.press('Enter');
   await page.waitForTimeout(400);
   await expect(remove).toHaveCount(0);
-});
+}
 
-test('recorrido por teclado: errores con Enter vacío y guardado', async ({ page }) => {
+async function stepErrorsAndSave(page: Page) {
   await page.goto(`/restaurants/${restaurantId}/dishes/new`);
   const name = page.locator('#dish-name');
   const price = page.locator('#dish-price');
@@ -150,4 +151,20 @@ test('recorrido por teclado: errores con Enter vacío y guardado', async ({ page
   await expect(page).toHaveURL(new RegExp(`/restaurants/${restaurantId}/dishes$`));
   await expect(page.getByText(dishName)).toBeVisible();
   await page.waitForTimeout(800);
+}
+
+test('recorrido completo por teclado de dishes/new (genera el vídeo)', async ({ page }, testInfo) => {
+  await stepTabOrder(page);
+  await stepSpaceEnterAndIngredients(page);
+  await stepErrorsAndSave(page);
+
+  // Paso final: cerrar la página para que el vídeo se escriba y copiarlo a e2e-videos/
+  const video = page.video()!;
+  await page.close();
+  const target = 'e2e-videos/dish-form-teclado.webm';
+  fs.mkdirSync('e2e-videos', { recursive: true });
+  await video.saveAs(target);
+  expect(fs.existsSync(target)).toBe(true);
+  expect(fs.statSync(target).size).toBeGreaterThan(0);
+  await testInfo.attach('video-teclado', { path: target, contentType: 'video/webm' });
 });
