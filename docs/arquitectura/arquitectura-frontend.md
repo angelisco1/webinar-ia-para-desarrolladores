@@ -2,6 +2,8 @@
 
 Los frontends de Resttek usan **Angular 21** con las funcionalidades más modernas: standalone components, signals, zoneless change detection y functional guards/interceptors.
 
+> **Nota:** `web-admin` aún no sigue este estilo: es una app basada en NgModules (`app.module.ts`, componentes con `standalone: false`, `ngModel`, `*ngIf`/`*ngFor`, `provideZoneChangeDetection`). `web-shared` y las demás apps sí usan standalone/signals.
+
 ---
 
 ## Stack Frontend
@@ -392,3 +394,20 @@ El sistema de diseño es **dark mode** e incluye:
 > | `web-empleados/src/styles.css` | copia con 46 líneas propias añadidas |
 >
 > En la práctica hay **cuatro copias del design system** y el fichero de `web-shared` es código muerto. Al tocar un estilo común hay que replicarlo en las tres apps, o se desincronizan.
+
+## Pruebas E2E y accesibilidad
+
+Los frontends no tienen tests unitarios; `web-admin` se valida con **Playwright + axe-core** desde la raíz (`e2e/`, `playwright.config.ts`).
+
+- `npm run test:e2e` arranca la API y `web-admin` (reutiliza los que ya estén en marcha), ejecuta `npm run seed` y lanza los specs con Chromium (`workers: 1`, la BD es compartida). Instalar el navegador una vez con `npx playwright install chromium`.
+- `e2e/auth.setup.ts` hace login con `admin@resttek.com` y guarda la sesión en `e2e/.auth/admin.json`.
+- `color-contrast.spec.ts` (axe `color-contrast` en las rutas principales y el placeholder), `non-text-contrast.spec.ts` (bordes ≥ 3:1), `dish-form-a11y.spec.ts` (semántica, foco, errores y axe WCAG 2.2 AA completo sobre `dishes/new`).
+- `npm run e2e:video` ejecuta `dish-form-keyboard-video.spec.ts`: recorre `dishes/new` solo con teclado (Tab, Shift+Tab, Espacio, Enter), con aserciones, y guarda el vídeo en `e2e-videos/dish-form-teclado.webm`. Los vídeos, `test-results/` y `playwright-report/` están ignorados por git.
+
+### Convenciones de accesibilidad del formulario de platos
+
+- Cada campo con `<label for>`; obligatorios con `required` + `aria-required` y leyenda «* obligatorio»; `novalidate` en el `<form>` para que los mensajes sean los propios.
+- Errores por campo (`aria-invalid`, `aria-describedby`, texto + icono) y resumen en `role="alert"` que no se autodescarta; el foco va al primer campo inválido.
+- Categoría = `<fieldset>/<legend>` con botones `aria-pressed` (y check); «Disponible» = `role="switch"` con texto Sí/No; Guardar = `type="submit"`; Enter en Ingrediente/Cantidad añade el ingrediente sin enviar.
+- Foco inicial en `#dish-name` solo al crear. Sin `tabindex` positivos.
+- Tokens: `--text-muted` y `--text-secondary` para texto (≥ 4,5:1), `--border-control` (≥ 3:1) para bordes de controles, `:focus-visible` global con `--border-focus`. `styles.css` y `base.css` deben mantenerse idénticos.
